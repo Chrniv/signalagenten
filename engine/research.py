@@ -22,6 +22,9 @@ from . import sim as S
 from . import strategies as ST
 
 DEV_END = "2018-12-31"
+# Yahoo's Stockholm opening prices before 2006 are unusable (opens ~0.6 % below the previous
+# close every day; see data_checks in the report), and stock fills happen at the open.
+STOCK_START = "2006-01-02"
 HOLDOUT = ("2019-01-01", "2026-09-30")
 
 # Pre-registered defaults and +/-25 % neighbourhoods (SPEC_v2 section 4 / 6)
@@ -45,7 +48,8 @@ CONTROL_SEEDS = 20
 
 def run(strategy, panel, levels, costs, start, end):
     if strategy.kind == "stock":
-        return S.run_stocks(strategy, panel, costs, start, end)
+        st = max(pd.Timestamp(start), pd.Timestamp(STOCK_START)) if start else pd.Timestamp(STOCK_START)
+        return S.run_stocks(strategy, panel, costs, st, end)
     return S.run_funds(strategy, levels, costs, start, end)
 
 
@@ -84,7 +88,13 @@ def evaluate(panel, levels, start, end, period_label, only=None, n_trials_overri
         res = run(strat, panel, levels, S.Costs(), start, end)
         st = M.stats(res.equity, res.trades, res.costs_paid, res.exposure)
         r = res.equity.pct_change().dropna()
-        st["dsr"] = M.deflated_sharpe(r, n_trials, sr_var)
+        fam = tdf[tdf.strategy == name]["sharpe"]
+        fam_var = float(fam.var()) if len(fam) > 1 else 0.0
+        # N = ALL variants tested; variance = dispersion within this strategy's own neighbourhood
+        # (run 1 used the variance across all families, which S2's cost-driven losses dominated).
+        st["dsr"] = M.deflated_sharpe(r, n_trials, fam_var)
+        st["dsr_trials"] = n_trials
+        st["dsr_sharpe_var"] = fam_var
         if strat.kind == "stock":
             for label, c in {"start_class": S.Costs(courtage="start"), "cost_2x": S.Costs(mult=2),
                              "cost_3x": S.Costs(mult=3), "fill_next_close": S.Costs(fill="close")}.items():
@@ -105,10 +115,20 @@ def evaluate(panel, levels, start, end, period_label, only=None, n_trials_overri
         st["neighbours_min_sharpe"] = float(nb["sharpe"].min())
         st["neighbours_median_sharpe"] = float(nb["sharpe"].median())
         bm = benchmark_for(strat.kind, panel, levels, res.equity.index[0], res.equity.index[-1])
-        st["benchmarks"] = {k: M.stats(v) for k, v in bm.items()}
-        best_bm = max(v["sharpe"] for v in st["benchmarks"].values())
-        st["best_benchmark_sharpe"] = best_bm
-        st["checks"] = checks(st, strat.kind, best_bm)
+        st["benchmarks"] = {}
+        for k, v in bm.items():
+            b = M.stats(v)
+            # strategy Sharpe over the SAME dates as this benchmark (SE_EQ data starts in 2008)
+            b["strategy_sharpe_same_period"] = M.sharpe(res.equity.loc[v.index[0]:v.index[-1]].pct_change().dropna())
+            st["benchmarks"][k] = b
+        # Pre-registered (SPEC_v2 sec. 6): must beat simply holding the Swedish index fund.
+        # Stock strategies must ALSO beat an equal-weight portfolio of the same stocks (survivorship).
+        req = ["B&H SE_EQ"] + (["EW universe"] if strat.kind == "stock" else [])
+        st["required_benchmarks"] = req
+        st["best_benchmark_sharpe"] = max(st["benchmarks"][k]["sharpe"] for k in req)
+        st["beats_required"] = all(st["benchmarks"][k]["strategy_sharpe_same_period"] > st["benchmarks"][k]["sharpe"] for k in req)
+        st["global_fund_sharpe"] = st["benchmarks"].get("B&H GLOBAL_EQ", {}).get("sharpe")
+        st["checks"] = checks(st, strat.kind, st["best_benchmark_sharpe"], req)
         st["verdict"] = "SHORTLIST" if all(st["checks"].values()) else "REJECT"
         st["trades_sample"] = res.trades.tail(5).astype(str).to_dict("records") if len(res.trades) else []
         detail[name] = st
@@ -120,11 +140,11 @@ def evaluate(panel, levels, start, end, period_label, only=None, n_trials_overri
     if not only or "S5_random_control" in only:
         ctl = []
         for seed in range(CONTROL_SEEDS):
-            res = S.run_stocks(ST.RandomEntry(seed=seed), panel, S.Costs(), start, end)
+            res = run(ST.RandomEntry(seed=seed), panel, levels, S.Costs(), start, end)
             st = M.stats(res.equity, res.trades, res.costs_paid, res.exposure)
             ctl.append(st)
         sh = [c["sharpe"] for c in ctl]
-        bm = benchmark_for("stock", panel, levels, start, end)
+        bm = benchmark_for("stock", panel, levels, max(pd.Timestamp(start or STOCK_START), pd.Timestamp(STOCK_START)), end)
         detail["S5_random_control"] = {
             "seeds": CONTROL_SEEDS, "sharpe_median": float(np.median(sh)), "sharpe_max": float(np.max(sh)),
             "sharpe_min": float(np.min(sh)), "trades_per_year_median": float(np.median([c["trades_per_year"] for c in ctl])),
@@ -136,7 +156,7 @@ def evaluate(panel, levels, start, end, period_label, only=None, n_trials_overri
             "sharpe_var_across_trials": sr_var, "strategies": detail}, tdf, pd.DataFrame(curves)
 
 
-def checks(st, kind, best_bm):
+def checks(st, kind, best_bm, req=("B&H SE_EQ",)):
     need = THRESH["sharpe_stock"] if kind == "stock" else THRESH["sharpe"]
     pf = st.get("profit_factor", float("nan"))
     return {
@@ -145,8 +165,17 @@ def checks(st, kind, best_bm):
         f"profit factor > {THRESH['pf']}": bool(pf > THRESH["pf"]),
         f">= {int(THRESH['neighbours_positive'] * 100)}% of neighbours positive": bool(st["neighbours_positive"] >= THRESH["neighbours_positive"]),
         f"deflated Sharpe > {THRESH['dsr']}": bool((st["dsr"] or 0) > THRESH["dsr"]),
-        "beats best benchmark Sharpe": bool(st["sharpe"] > best_bm),
+        f"beats {' and '.join(req)} (Sharpe, same dates)": bool(st["beats_required"]),
     }
+
+
+def open_price_check(panel) -> pd.DataFrame:
+    """Average overnight (prev close -> open) and intraday (open -> close) log return per year, annualised."""
+    gap = np.log(panel.open / panel.close.shift(1))
+    intra = np.log(panel.close / panel.open)
+    y = gap.index.year
+    return pd.DataFrame({"overnight": gap.groupby(y).mean().mean(axis=1) * 252,
+                         "intraday": intra.groupby(y).mean().mean(axis=1) * 252})
 
 
 def affordability(data_dir) -> pd.DataFrame:
@@ -175,7 +204,7 @@ def num(x, d=2):
 
 
 def write_report(out: Path, res: dict, tdf: pd.DataFrame, curves: pd.DataFrame, info: dict,
-                 manifest: dict | None, afford: pd.DataFrame | None, label: str):
+                 manifest: dict | None, afford: pd.DataFrame | None, label: str, opencheck=None):
     out.mkdir(parents=True, exist_ok=True)
     tdf.to_csv(out / f"trials_{label}.csv", index=False)
     curves.to_csv(out / f"equity_{label}.csv.gz", compression="gzip")
@@ -187,15 +216,19 @@ def write_report(out: Path, res: dict, tdf: pd.DataFrame, curves: pd.DataFrame, 
          "fills at next day's open. Funds: no courtage, 0.15 %/yr fee, NAV of the next day, 2-day settlement on switches, "
          "0 % on cash. Capital 1,000 kr, fractional shares.", "",
          "Fund proxies: " + "; ".join(f"{k} = {v}" for k, v in info.items()), "",
+         "**Changes since run 1** (archived in research/archive/report_dev_run1.md): (1) stock calendar now built from the stocks "
+         "themselves, and stock tests start in 2006 (Yahoo opening prices before 2006 are broken, see Data check); (2) the deflated Sharpe keeps the full trial count but uses "
+         "each strategy's own Sharpe dispersion; (3) the benchmark check now follows the pre-registered spec (beat the Swedish index "
+         "fund; stock strategies must also beat equal-weight of the same stocks). The global fund is shown for information.", "",
          "## Summary", "",
-         "| Strategy | CAGR | Sharpe | Max DD | Trades/yr | Win rate | Profit factor | Cost share | Sharpe 2× costs | Neighbours >0 | Deflated Sharpe | Best benchmark Sharpe | Verdict |",
-         "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
+         "| Strategy | CAGR | Sharpe | Max DD | Trades/yr | Win rate | Profit factor | Cost share | Sharpe 2× costs | Neighbours >0 | Deflated Sharpe | Required benchmark Sharpe | Global fund Sharpe (info) | Verdict |",
+         "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for n, s in res["strategies"].items():
         if n.startswith("S5"):
             continue
         L.append(f"| {n} | {pct(s['cagr'])} | {num(s['sharpe'])} | {pct(s['max_dd'])} | {num(s['trades_per_year'], 1)} | "
                  f"{pct(s['win_rate'], 0)} | {num(s['profit_factor'])} | {pct(s['cost_share'], 0)} | {num(s.get('sharpe_cost_2x'))} | "
-                 f"{pct(s['neighbours_positive'], 0)} | {num(s['dsr'])} | {num(s['best_benchmark_sharpe'])} | **{s['verdict']}** |")
+                 f"{pct(s['neighbours_positive'], 0)} | {num(s['dsr'])} | {num(s['best_benchmark_sharpe'])} | {num(s.get('global_fund_sharpe'))} | **{s['verdict']}** |")
     c = res["strategies"].get("S5_random_control")
     if c:
         L += ["", f"**Control (random entries, {c['seeds']} seeds):** median Sharpe {num(c['sharpe_median'])} "
@@ -215,7 +248,7 @@ def write_report(out: Path, res: dict, tdf: pd.DataFrame, curves: pd.DataFrame, 
             L.append("Sensitivity (Sharpe): " + " · ".join(f"{k[7:]} {num(v)}" for k, v in sens.items()))
         L.append(f"Neighbourhood ({s['neighbours']} variants): {pct(s['neighbours_positive'], 0)} positive, "
                  f"median Sharpe {num(s['neighbours_median_sharpe'])}, worst {num(s['neighbours_min_sharpe'])}")
-        L.append("Benchmarks: " + " · ".join(f"{k}: CAGR {pct(v['cagr'])}, Sharpe {num(v['sharpe'])}, max DD {pct(v['max_dd'])}"
+        L.append("Benchmarks: " + " · ".join(f"{k} ({v['start'][:4]}–{v['end'][:4]}): CAGR {pct(v['cagr'])}, Sharpe {num(v['sharpe'])} vs strategy {num(v['strategy_sharpe_same_period'])}, max DD {pct(v['max_dd'])}"
                                              for k, v in s["benchmarks"].items()))
         L += ["", "| Check | Pass |", "|---|---|"] + [f"| {k} | {'✅' if v else '❌'} |" for k, v in s["checks"].items()]
     if afford is not None and len(afford):
@@ -224,6 +257,13 @@ def write_report(out: Path, res: dict, tdf: pd.DataFrame, curves: pd.DataFrame, 
               "| Ticker | Price | Shares for 500 kr | Shares for 1,000 kr |", "|---|---|---|---|"]
         for _, r in afford.iterrows():
             L.append(f"| {r.ticker} | {r.price} | {r.shares_for_500kr} | {r.shares_for_1000kr} |")
+    if opencheck is not None:
+        L += ["", "## Data check: opening prices", "",
+              "Average annualised log return overnight vs intraday across our stocks. Real markets show values near zero; "
+              "large opposite numbers mean the open prices are wrong. Stock tests start in " + STOCK_START[:4] + ".", "",
+              "| Year | Overnight | Intraday |", "|---|---|---|"]
+        for yv, r in opencheck.iterrows():
+            L.append(f"| {yv} | {r.overnight:+.2f} | {r.intraday:+.2f} |")
     if manifest:
         L += ["", "## Data", "", f"Downloaded {manifest.get('run_utc', '?')}; {len(manifest.get('files', {}))} tickers ok, "
               f"failed: {', '.join(manifest.get('failed', {})) or 'none'}."]
@@ -252,7 +292,7 @@ def main():
 
     if not a.holdout:
         res, tdf, curves = evaluate(panel, levels, None, DEV_END, "development (in-sample)")
-        write_report(out, res, tdf, curves, info, manifest, affordability(data_dir), "dev")
+        write_report(out, res, tdf, curves, info, manifest, affordability(data_dir), "dev", open_price_check(panel))
         print((out / "report_dev.md").read_text()[:3000])
         return
 

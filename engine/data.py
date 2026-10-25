@@ -125,11 +125,10 @@ def load_stock_panel(data_dir) -> Panel:
         df = load_ticker(data_dir, t)
         if df is not None:
             frames[t] = adjusted_ohlc(df)
-    bench = load_ticker(data_dir, U.BENCHMARK)
-    if bench is not None:
-        cal = bench.index
-    else:
-        cal = pd.DatetimeIndex(sorted(set().union(*[f.index for f in frames.values()])))
+    # Calendar = every day on which at least 3 of our stocks traded (the OMXS30 index on Yahoo
+    # only starts in 2008, so it can't define the calendar).
+    counts = pd.concat([f["close"].notna().rename(t) for t, f in frames.items()], axis=1).sum(axis=1)
+    cal = pd.DatetimeIndex(counts[counts >= 3].index).sort_values()
     return Panel(frames, cal)
 
 
