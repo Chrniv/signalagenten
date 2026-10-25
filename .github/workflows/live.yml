@@ -34,7 +34,8 @@ jobs:
       - name: Signals and paper portfolios
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
-        run: python -m engine.live --out live
+        # code pushes refresh the app without sending a notification
+        run: python -m engine.live --out live ${{ github.event_name == 'push' && '--no-push' || '' }}
       - name: Publish to the live branch
         run: |
           git config user.name "github-actions[bot]"

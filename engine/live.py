@@ -15,7 +15,7 @@ import argparse
 import json
 import os
 import tempfile
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -86,11 +86,69 @@ def fetch_data(work: Path) -> Path:
     return work
 
 
+def _easter(y: int) -> date:
+    a, b, c = y % 19, y // 100, y % 100
+    d, e = b // 4, b % 4
+    f = (b + 8) // 25
+    g = (b - f + 1) // 3
+    h = (19 * a + b - d - g + 15) % 30
+    i, k = c // 4, c % 4
+    l = (32 + 2 * e + 2 * i - h - k) % 7
+    m = (a + 11 * h + 22 * l) // 451
+    month, day = divmod(h + l - 7 * m + 114, 31)
+    return date(y, month, day + 1)
+
+
+def se_holidays(y: int) -> set[date]:
+    """Days Nasdaq Stockholm is closed on weekdays."""
+    e = _easter(y)
+    midsummer_eve = next(date(y, 6, d) for d in range(19, 26) if date(y, 6, d).weekday() == 4)
+    return {date(y, 1, 1), date(y, 1, 6), e - timedelta(days=2), e + timedelta(days=1), date(y, 5, 1),
+            e + timedelta(days=39), date(y, 6, 6), midsummer_eve, date(y, 12, 24), date(y, 12, 25),
+            date(y, 12, 26), date(y, 12, 31)}
+
+
+def is_trading_day(d: date) -> bool:
+    return d.weekday() < 5 and d not in se_holidays(d.year)
+
+
+def add_trading_days(d: date, n: int) -> date:
+    while n > 0:
+        d += timedelta(days=1)
+        if is_trading_day(d):
+            n -= 1
+    return d
+
+
+def first_trading_day_next_month(d: date) -> date:
+    nxt = date(d.year + (d.month == 12), d.month % 12 + 1, 1)
+    while not is_trading_day(nxt):
+        nxt += timedelta(days=1)
+    return nxt
+
+
+HOLD_RULES = {
+    "S2": ("Upp till 5 handelsdagar", "Säljs tidigare om kursen studsar, alltså stänger över sitt 5-dagars snitt, eller om stop-lossen löser ut."),
+    "S3": ("Minst till månadsskiftet", "Omprövas sista handelsdagen varje månad. Behålls så länge aktien är bland de 2 starkaste och marknaden ligger i upptrend."),
+    "S6": ("30 handelsdagar, cirka 6 veckor", "Säljs tidigare bara om stop-lossen löser ut."),
+    "S7": ("30 handelsdagar, cirka 6 veckor", "Säljs tidigare bara om stop-lossen löser ut."),
+    "SLUMP": ("30 handelsdagar, cirka 6 veckor", "Säljs tidigare bara om stop-lossen löser ut."),
+}
+
+
+def planned_exit(key: str, entry: date, strat) -> tuple[date, str]:
+    """Latest planned sale (at that day's open) for a position bought at the open of `entry`."""
+    if key == "S3":
+        return first_trading_day_next_month(entry), "omprövas"
+    days = getattr(strat, "max_days", None) or getattr(strat, "hold", 30)
+    return add_trading_days(entry, days), "senast"
+
+
 def expected_last_session(now: datetime) -> pd.Timestamp:
     d = now.date()
     if now.hour < 18:                      # before today's bar is reliably available
         d -= timedelta(days=1)
-    while d.weekday() >= 5:
+    while not is_trading_day(d):
         d -= timedelta(days=1)
     return pd.Timestamp(d)
 
@@ -192,12 +250,16 @@ def run(univ_dir: Path, out: Path, now: datetime | None = None) -> dict:
             lp, nx = last_report(earn, t, asof)
             if t not in vcache:
                 vcache[t] = valuation(t)
+            buy_day = add_trading_days(asof.date(), 1)
+            sell_by, kind = planned_exit(key, buy_day, strat)
             actions.append({"strategy": key, "action": "KÖP", "ticker": t, "name": names.get(t, t),
                             "last_close": r4(last), "limit": r4(last * 1.02),
                             "stop_pct": getattr(strat, "stop", 0.0), "reason": reason,
                             "weight": r4(1 / getattr(strat, "max_positions", getattr(strat, "top_n", 2))),
                             "last_report": lp, "next_report": nx, "report_miss": recent_miss(earn, t, asof),
-                            "valuation": vcache[t]})
+                            "valuation": vcache[t], "buy_day": str(buy_day),
+                            "hold": HOLD_RULES[key][0], "hold_detail": HOLD_RULES[key][1],
+                            "sell_by": str(sell_by), "sell_by_kind": kind})
         for t, p in held.items():
             if t not in meta["next"]:
                 why = "Hålltiden är slut" if key in ("S6", "S7", "SLUMP") else "Säljsignal enligt reglerna"
@@ -219,12 +281,14 @@ def run(univ_dir: Path, out: Path, now: datetime | None = None) -> dict:
         for p in meta["open"]:
             # entry_px is adjusted; express returns in % so they are valid regardless of adjustment
             ret = p["shares"] * p["last"] / p["cost_in"] - 1
-            positions.append({"ticker": p["ticker"], "name": names.get(p["ticker"], p["ticker"]),
+            sb, kind = planned_exit(key, date.fromisoformat(p["entry_date"]), strat)
+            positions.append({"sell_by": str(sb), "sell_by_kind": kind,"ticker": p["ticker"], "name": names.get(p["ticker"], p["ticker"]),
                               "entry_date": p["entry_date"], "days_held": p["days_held"],
                               "value": r4(p["shares"] * p["last"]), "ret": r4(ret),
                               "stop_dist": r4(p["last"] / p["stop_px"] - 1) if p["stop_px"] else None})
         state["strategies"][key] = {
             "name": spec["name"], "how": spec["how"], "backtest": spec["backtest"],
+            "hold": HOLD_RULES[key][0], "hold_detail": HOLD_RULES[key][1],
             "equity": {"dates": [str(d.date()) for d in eq.index], "values": [r4(x) for x in eq]},
             "value": r4(eq.iloc[-1]) if len(eq) else CAPITAL, "cash": r4(meta["cash"]),
             "ret": r4(eq.iloc[-1] / CAPITAL - 1) if len(eq) else 0.0,
@@ -256,7 +320,9 @@ def push(state: dict):
         for a in acts[:8]:
             name = state["strategies"][a["strategy"]]["name"]
             if a["action"] == "KÖP":
-                lines.append(f"KÖP {a['name']} · {name} · limit {a['limit']:.2f} kr".replace(".", ","))
+                sb = date.fromisoformat(a["sell_by"])
+                when = ("omprövas " if a["sell_by_kind"] == "omprövas" else "sälj senast ") + f"{sb.day}/{sb.month}"
+                lines.append(f"KÖP {a['name']} · {name} · limit {a['limit']:.2f} kr · {when}".replace(".", ","))
             else:
                 lines.append(f"SÄLJ {a['name']} · {name}")
         body = "\n".join(lines) + "\nPappersportfölj: ingen riktig affär behövs."

@@ -71,6 +71,10 @@ button:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid var
 .order b{display:block;font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:17px}
 .order span{font-size:12px;color:var(--muted)}
 .why{font-size:15px;margin:0 0 8px}
+.hold{display:flex;gap:12px;align-items:baseline;justify-content:space-between;background:var(--surface);border:1px solid var(--line);
+  border-radius:8px;padding:8px 10px;margin:0 0 10px}
+.hold b{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:17px;white-space:nowrap}
+.hold-detail{font-size:14px;color:var(--muted);margin:-4px 0 10px}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .chip{font-size:13px;background:var(--chip);border-radius:6px;padding:2px 8px}
 .flag{font-size:14px;color:var(--down);margin-top:8px}
@@ -191,6 +195,9 @@ function slip(a, st){
       <span class="tag" style="background:${col(a.strategy)}">${esc(s.name)}</span></div>
     <div class="slip-name">${esc(a.name)}</div>
     ${order}
+    ${buy && a.sell_by ? `<div class="hold"><span><span class="small muted">Håll</span><br>${esc(a.hold)}</span>
+      <span style="text-align:right"><span class="small muted">${a.sell_by_kind==="omprövas"?"Omprövas":"Sälj senast"}</span><br><b>${dfmt(a.sell_by).replace(/\.$/,"")}</b></span></div>
+      <p class="hold-detail">${esc(a.hold_detail)} Du får en säljsignal när det är dags.</p>` : ""}
     <p class="why">${esc(a.reason)}.</p>
     ${rep||nxt?`<p class="small muted">${esc(rep+nxt)}</p>`:""}
     ${chips?`<div class="chips">${chips}</div>`:""}
@@ -238,15 +245,15 @@ function nextWeekday(ds){const d=new Date(ds+"T12:00:00"); do{d.setDate(d.getDat
 
 function strat(k, st){
   const s=st.strategies[k];
-  const pos = s.positions.length ? `<table><thead><tr><th>Innehav</th><th class="r">Dagar</th><th class="r">Värde</th><th class="r">Resultat</th></tr></thead><tbody>${
-      s.positions.map(p=>`<tr><td>${esc(p.name)}</td><td class="r">${p.days_held}</td><td class="r">${kr(p.value)}</td><td class="r ${cls(p.ret)}">${pc(p.ret)}</td></tr>`).join("")}</tbody></table>`
+  const pos = s.positions.length ? `<table><thead><tr><th>Innehav</th><th class="r">Säljs</th><th class="r">Värde</th><th class="r">Resultat</th></tr></thead><tbody>${
+      s.positions.map(p=>`<tr><td>${esc(p.name)}</td><td class="r">${p.sell_by?(p.sell_by_kind==="omprövas"?"omprövas ":"senast ")+dm(p.sell_by):p.days_held+" d"}</td><td class="r">${kr(p.value)}</td><td class="r ${cls(p.ret)}">${pc(p.ret)}</td></tr>`).join("")}</tbody></table>`
     : `<p class="muted small">${k==="S3"?"Inga innehav. Momentum byter bara vid månadsskiften.":"Inga innehav just nu, allt ligger i kassan."}</p>`;
   const trades = s.trades.length ? `<h3 style="margin-top:16px">Avslutade affärer</h3><table><thead><tr><th>Aktie</th><th>Köpt–sålt</th><th class="r">Resultat</th></tr></thead><tbody>${
       s.trades.slice(0,12).map(t=>`<tr><td>${esc(t.name)}<div class="muted small">${esc(t.why)}</div></td><td>${dm(t.entry)}–${dm(t.exit)}</td><td class="r ${cls(t.ret)}">${pc(t.ret)}</td></tr>`).join("")}</tbody></table>` : "";
   return `<details class="strat"><summary><span class="dot" style="background:${col(k)}"></span>
       <span><h3>${esc(s.name)}</h3><span class="muted small">${s.n_trades} affärer${s.win_rate!=null?", "+nf(0).format(s.win_rate*100)+" % vinnare":""}</span></span>
       <span class="num ${cls(s.ret)}" style="font-weight:700">${pc(s.ret)}</span></summary>
-    <div class="strat-body"><p class="small">${esc(s.how)}</p><div class="verdict">${esc(s.backtest)}</div>${pos}${trades}
+    <div class="strat-body"><p class="small">${esc(s.how)}</p>${s.hold?`<p class="small"><b>Hålltid:</b> ${esc(s.hold)}. ${esc(s.hold_detail)}</p>`:""}<div class="verdict">${esc(s.backtest)}</div>${pos}${trades}
       <p class="muted small" style="margin-top:12px">Kassa ${kr(s.cash)}${s.max_dd!=null?`, största nedgång ${pc(s.max_dd)}`:""}.</p></div></details>`;
 }
 
