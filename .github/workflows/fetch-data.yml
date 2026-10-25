@@ -1,0 +1,51 @@
+name: fetch-data-and-research
+
+# Downloads daily prices from Yahoo Finance, runs the tests and the development-period
+# research, and stores data/ + reports/ on the `data` branch (replaced on every run).
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "engine/**"
+      - "tests/**"
+      - ".github/workflows/fetch-data.yml"
+  schedule:
+    - cron: "17 5 * * 6"   # Saturdays 05:17 UTC: weekly refresh
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fetch-data
+  cancel-in-progress: true
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install -r requirements.txt
+      - name: Tests
+        run: python -m pytest -q
+      - name: Download prices
+        run: python -c "from engine.data import fetch_all; m = fetch_all('data'); print(len(m['files']), 'ok;', 'failed:', list(m['failed']))"
+      - name: Development-period research
+        run: python -m engine.research --data data --out reports
+      - name: Publish to the data branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -rf /tmp/pub && mkdir -p /tmp/pub && cp -r data reports /tmp/pub/
+          git checkout --orphan publish
+          git rm -rf -q . || true
+          rm -rf data reports
+          cp -r /tmp/pub/* .
+          git add data reports
+          git commit -q -m "data + dev research $(date -u +%Y-%m-%dT%H:%MZ) from ${GITHUB_SHA::7}"
+          git push -f origin HEAD:data
