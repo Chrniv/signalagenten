@@ -1,0 +1,34 @@
+name: probe-free-data
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "engine/probe_fundamentals.py"
+      - ".github/workflows/probe.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt requests
+      - run: python -m engine.probe_fundamentals
+      - name: Publish to the probe branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -rf /tmp/p && cp -r probe /tmp/p
+          git checkout --orphan pub
+          git rm -rf -q . || true
+          rm -rf probe && cp -r /tmp/p probe
+          git add probe && git commit -q -m "probe $(date -u +%FT%TZ)"
+          git push -f origin HEAD:probe
