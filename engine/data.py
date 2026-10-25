@@ -177,3 +177,26 @@ def fund_series(data_dir) -> tuple[pd.DataFrame, dict]:
         raise RuntimeError("No Swedish equity proxy found")
     out = pd.DataFrame({k: v.reindex(se_cal).ffill() for k, v in levels.items()})
     return out.dropna(how="all"), info
+
+
+# ------------------------------------------------------------------ full Stockholm universe
+def load_universe_panel(univ_dir, min_names: int = 20) -> Panel:
+    """All shares downloaded by engine.universe_fetch (universe/prices/*.csv.gz)."""
+    univ_dir = Path(univ_dir)
+    frames = {}
+    for p in sorted((univ_dir / "prices").glob("*.csv.gz")):
+        df = pd.read_csv(p, index_col="date", parse_dates=True)
+        if len(df) < 60:
+            continue
+        t = p.name[:-len(".csv.gz")]
+        frames[t] = adjusted_ohlc(df)
+    counts = pd.concat([f["close"].notna().rename(t) for t, f in frames.items()], axis=1).sum(axis=1)
+    cal = pd.DatetimeIndex(counts[counts >= min_names].index).sort_values()
+    return Panel(frames, cal)
+
+
+def load_earnings(univ_dir) -> pd.DataFrame:
+    e = pd.read_csv(Path(univ_dir) / "earnings.csv.gz")
+    for c in ["eps_estimate", "eps_reported", "surprise_pct"]:
+        e[c] = pd.to_numeric(e[c], errors="coerce")
+    return e

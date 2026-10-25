@@ -28,6 +28,7 @@ class Costs:
     fill: str = "open"               # "open" or "close" of the next day
     cash_yield: float = 0.0          # annual, on idle cash (conservative default)
     settle_lag: int = 2              # trading days between a fund sale and the buy it funds (assumption)
+    tiered: bool = False             # half-spread by liquidity tier instead of the flat half_spread
 
     def fee(self, notional: float) -> float:
         c = COURTAGE[self.courtage]
@@ -38,6 +39,17 @@ class Costs:
     @property
     def slip(self) -> float:
         return self.half_spread * self.mult
+
+
+# Half-spread per side by 60-day median daily turnover in SEK (assumption, PREREG_S6_S7.md)
+SPREAD_TIERS = [(100e6, 0.0005), (20e6, 0.0010), (5e6, 0.0020), (0, 0.0040)]
+
+
+def tier_half_spread(turnover: np.ndarray) -> np.ndarray:
+    out = np.full(turnover.shape, SPREAD_TIERS[-1][1])
+    for lo, hs in reversed(SPREAD_TIERS):
+        out = np.where(turnover >= lo, hs, out)
+    return out
 
 
 @dataclass
@@ -63,15 +75,25 @@ def run_stocks(strategy, panel, costs: Costs, start=None, end=None, capital=1000
     pending = None                    # (desired holdings, equity at decision)
     equity, trades, costs_paid, invested_days = [], [], 0.0, 0
     stop = getattr(strategy, "stop", 0.0) or 0.0
+    if costs.tiered:
+        turn = (panel.raw_close * panel.volume).rolling(60, min_periods=20).median().shift(1).to_numpy()
+        HS = tier_half_spread(np.nan_to_num(turn, nan=0.0)) * costs.mult
+
+        def slip(i, j):
+            return HS[i, j]
+    else:
+        def slip(i, j):
+            return costs.slip
 
     def close_pos(t, px, i, why):
         nonlocal cash, costs_paid
         p = pos.pop(t)
-        fill = px * (1 - costs.slip)
+        sl = slip(i, col[t])
+        fill = px * (1 - sl)
         notional = p["shares"] * fill
         fee = costs.fee(notional)
         cash += notional - fee
-        costs_paid += fee + p["shares"] * px * costs.slip
+        costs_paid += fee + p["shares"] * px * sl
         trades.append({"ticker": t, "entry": cal[p["entry_i"]], "exit": cal[i], "why": why,
                        "entry_px": p["entry_px"], "exit_px": fill, "shares": p["shares"],
                        "pnl": notional - fee - p["cost_in"], "ret": (notional - fee) / p["cost_in"] - 1})
@@ -95,7 +117,8 @@ def run_stocks(strategy, panel, costs: Costs, start=None, end=None, capital=1000
                 px = px_row[col[t]]
                 if np.isnan(px) or px <= 0:
                     continue
-                fill = px * (1 + costs.slip)
+                sl = slip(i, col[t])
+                fill = px * (1 + sl)
                 budget = min(w * eq_dec, cash)
                 if budget <= 0:
                     continue
@@ -105,7 +128,7 @@ def run_stocks(strategy, panel, costs: Costs, start=None, end=None, capital=1000
                     continue
                 sh = notional / fill
                 cash -= notional + fee
-                costs_paid += fee + sh * px * costs.slip
+                costs_paid += fee + sh * px * sl
                 pos[t] = {"shares": sh, "entry_px": fill, "entry_i": i, "cost_in": notional + fee,
                           "stop_px": fill * (1 - stop) if stop > 0 else None}
             pending = None
