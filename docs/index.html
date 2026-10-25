@@ -78,6 +78,19 @@ button:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid var
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .chip{font-size:13px;background:var(--chip);border-radius:6px;padding:2px 8px}
 .flag{font-size:14px;color:var(--down);margin-top:8px}
+.more{margin-top:12px;border-top:1px solid var(--line)}
+.more summary{cursor:pointer;list-style:none;padding:12px 0 2px;font-weight:600;color:var(--act);display:flex;justify-content:space-between}
+.more summary::-webkit-details-marker{display:none}
+.more summary::after{content:"+";font-size:20px;line-height:1}
+.more[open] summary::after{content:"−"}
+.more h4{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:16px;margin:16px 0 6px}
+.facts{display:grid;grid-template-columns:1fr auto;gap:0;font-size:14px;margin:0}
+.facts dt,.facts dd{margin:0;padding:6px 0;border-bottom:1px solid var(--line)}
+.facts dd{text-align:right;font-weight:600;padding-left:12px}
+.facts dt small{display:block;color:var(--muted);font-weight:400}
+.summary{font-size:14px;line-height:1.55}
+.note{font-size:13px;color:var(--muted);margin-top:12px}
+a{color:var(--act)}
 .empty{background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:16px}
 
 /* race */
@@ -165,17 +178,46 @@ const dm = s=> `${+s.slice(8,10)}/${+s.slice(5,7)}`;
   };
 })();
 
+const EXPLAIN = {
+  "P/E":"Aktiekurs delat med vinst per aktie senaste året. Lägre betyder billigare i förhållande till vinsten.",
+  "P/E (prognos)":"Samma sak men på analytikernas vinstprognos för kommande år.",
+  "P/B":"Börsvärde delat med eget kapital. Under 1 betyder att aktien värderas lägre än bokfört värde.",
+  "EV/EBITDA":"Bolagets värde inklusive skulder delat med rörelseresultat före avskrivningar.",
+  "ROE":"Avkastning på eget kapital: hur mycket vinst bolaget gör på ägarnas pengar.",
+  "Vinstmarginal":"Hur stor del av försäljningen som blir vinst.",
+  "Skuld/EK":"Skulder i förhållande till eget kapital, i procent. Högt betyder mer belånat.",
+  "Direktavk.":"Utdelning per år i procent av aktiekursen.",
+  "Omsättningstillväxt":"Hur mycket försäljningen ökat jämfört med året innan.",
+  "Börsvärde":"Vad hela bolaget är värt på börsen."};
+
+function fmtVal(k,x){
+  if(k==="Börsvärde") return nf(1).format(x/1e9)+" mdr kr";
+  if(["ROE","Vinstmarginal","Omsättningstillväxt"].includes(k)) return nf(0).format(x*100)+" %";
+  if(k==="Direktavk.") return nf(1).format(x)+" %";
+  if(k==="Skuld/EK") return nf(0).format(x)+" %";
+  return typeof x==="number" ? nf(1).format(x) : String(x);
+}
+const facts = rows => `<dl class="facts">${rows.map(([k,v,ex])=>`<dt>${esc(k)}${ex?`<small>${esc(ex)}</small>`:""}</dt><dd>${esc(v)}</dd>`).join("")}</dl>`;
+
+function details(a, s){
+  const d = a.detail||{}, c = a.company||{}, v = a.valuation||{};
+  const why = d.text ? `<h4>Varför ${esc(s.name.toLowerCase())} vill köpa</h4><p class="summary">${esc(d.text)}</p>${d.rows&&d.rows.length?facts(d.rows):""}` : "";
+  const price = d.price&&d.price.length ? `<h4>Kursen</h4>${facts(d.price)}` : "";
+  const meta = [c.sector&&c.industry?`${c.sector}, ${c.industry}`:(c.sector||c.industry), c.employees?`${nf(0).format(c.employees)} anställda`:null, c.city].filter(Boolean);
+  const comp = (c.summary||meta.length) ? `<h4>Om ${esc(a.name)}</h4>${meta.length?`<p class="small muted">${esc(meta.join(". "))}.</p>`:""}
+      ${c.summary?`<p class="summary" lang="en">${esc(c.summary)}</p><p class="note">Beskrivningen kommer från Yahoo Finance och är på engelska.</p>`:""}
+      ${c.website?`<p class="small"><a href="${esc(c.website)}" target="_blank" rel="noopener">${esc(c.website.replace(/^https?:\/\//,""))}</a></p>`:""}` : "";
+  const keys = Object.keys(v);
+  const val = keys.length ? `<h4>Nyckeltal</h4>${facts(keys.map(k=>[k, fmtVal(k,v[k]), EXPLAIN[k]]))}` : "";
+  return `<details class="more"><summary>Mer om bolaget och signalen</summary>${why}${price}${comp}${val}
+    <p class="note">Signalen bygger bara på regeln ovan. Bolagsfakta och nyckeltal är bakgrund. De påverkar inte signalen och har inte testats.</p></details>`;
+}
+
 function slip(a, st){
   const s = st.strategies[a.strategy];
   const buy = a.action==="KÖP";
   const v = a.valuation||{};
-  const chips = Object.entries(v).slice(0,6).map(([k,x])=>{
-    let val=x;
-    if(k==="Börsvärde") val=nf(1).format(x/1e9)+" mdr";
-    else if(["ROE","Vinstmarginal","Omsättningstillväxt"].includes(k)) val=nf(0).format(x*100)+" %";
-    else if(k==="Direktavk.") val=nf(1).format(x)+" %";
-    else if(typeof x==="number") val=nf(1).format(x);
-    return `<span class="chip">${esc(k)} ${esc(val)}</span>`;}).join("");
+  const more = buy ? details(a, s) : "";
   const rep = a.last_report ? `Senaste rapport ${dfmt(a.last_report.date).replace(/\.$/,"")}: vinst/aktie ${nf(2).format(a.last_report.eps)} mot väntat ${nf(2).format(a.last_report.estimate)} (${pc(a.last_report.surprise_pct/100,0)}).` : "";
   const nxt = a.next_report ? ` Nästa rapport ${dfmt(a.next_report).replace(/\.$/,"")}.` : "";
   let afford = "";
@@ -200,8 +242,8 @@ function slip(a, st){
       <p class="hold-detail">${esc(a.hold_detail)} Du får en säljsignal när det är dags.</p>` : ""}
     <p class="why">${esc(a.reason)}.</p>
     ${rep||nxt?`<p class="small muted">${esc(rep+nxt)}</p>`:""}
-    ${chips?`<div class="chips">${chips}</div>`:""}
     ${afford}${flag}
+    ${more}
   </article>`;
 }
 

@@ -158,13 +158,108 @@ def r4(x):
     return None if x is None or (isinstance(x, float) and not np.isfinite(x)) else round(float(x), 4)
 
 
-def valuation(ticker: str) -> dict:
+def company_info(ticker: str) -> dict:
+    """Key figures + company profile from Yahoo (one request). Background only, never used by the rules."""
     try:
         import yfinance as yf
         info = yf.Ticker(ticker).info or {}
-        return {label: info.get(k) for k, label in INFO_KEYS.items() if info.get(k) is not None}
     except Exception:  # noqa: BLE001
-        return {}
+        info = {}
+    val = {label: info.get(k) for k, label in INFO_KEYS.items() if info.get(k) is not None}
+    summary = (info.get("longBusinessSummary") or "").strip()
+    if len(summary) > 700:
+        cut = summary[:700].rsplit(". ", 1)[0]
+        summary = cut + "."
+    prof = {k: v for k, v in {
+        "sector": info.get("sector"), "industry": info.get("industry"), "employees": info.get("fullTimeEmployees"),
+        "website": info.get("website"), "city": info.get("city"), "country": info.get("country"),
+        "summary": summary or None}.items() if v}
+    return {"valuation": val, "profile": prof}
+
+
+def sv(x, d=1, pct=False, sign=False) -> str:
+    """Swedish number formatting for the explanation texts."""
+    if x is None or (isinstance(x, float) and not np.isfinite(x)):
+        return "–"
+    v = x * 100 if pct else x
+    txt = f"{v:+,.{d}f}" if sign else f"{v:,.{d}f}"
+    txt = txt.replace(",", " ").replace(".", ",").replace("-", "−")
+    return txt + (" %" if pct else "")
+
+
+def price_context(panel, t: str) -> list[list[str]]:
+    c = panel.close[t].dropna()        # adjusted, for returns
+    raw = panel.raw_close[t].dropna()
+    rows = []
+    for label, n in (("1 månad", 21), ("3 månader", 63), ("12 månader", 252)):
+        if len(c) > n:
+            rows.append([f"Kursutveckling {label}", sv(c.iloc[-1] / c.iloc[-1 - n] - 1, 1, pct=True, sign=True)])
+    if len(raw) > 20:
+        hi = raw.iloc[-252:].max()
+        lo = raw.iloc[-252:].min()
+        d = raw.iloc[-1] / hi - 1
+        rows.append(["Från 52-veckorshögsta", "på högsta nivån" if d > -0.0005 else sv(d, 1, pct=True, sign=True)])
+        rows.append(["52 veckor, lägst–högst", f"{sv(lo, 2)}–{sv(hi, 2)} kr"])
+    return rows
+
+
+def signal_detail(key: str, strat, panel, earn: pd.DataFrame, t: str) -> dict:
+    """Plain-language explanation of exactly what the rule reacted to, with the numbers."""
+    i = len(panel.calendar) - 1
+    j = panel.close.columns.get_loc(t)
+    C = panel.close.to_numpy()
+    raw_last = float(panel.raw_close[t].iloc[-1])
+    adj_factor = raw_last / C[i, j] if C[i, j] else 1.0
+    day_ret = C[i, j] / C[i - 1, j] - 1
+    mkt = E.ew_market_return(panel)[i]
+    rows, text = [], ""
+    if key == "S2":
+        rsi, ma200, ma5 = strat.rsi[i, j], strat.trend[i, j], strat.exit[i, j]
+        drop3 = C[i, j] / C[i - 3, j] - 1
+        text = (f"Aktien har fallit {sv(-drop3, 1, pct=True)} på tre dagar, men ligger fortfarande "
+                f"{sv(C[i, j] / ma200 - 1, 1, pct=True)} över sitt 200-dagars snitt. Regeln köper sådana kraftiga dippar i en "
+                f"upptrend och säljer när kursen studsar tillbaka.")
+        rows = [["RSI(2), köp under 10", sv(rsi, 1)], ["Förändring senaste 3 dagarna", sv(drop3, 1, pct=True, sign=True)],
+                ["Över 200-dagars snitt med", sv(C[i, j] / ma200 - 1, 1, pct=True)],
+                ["Säljs om den stänger över (5-dagars snitt i dag)", f"{sv(ma5 * adj_factor, 2)} kr"]]
+    elif key == "S3":
+        mom = strat.mom[i, j]
+        elig = [m for m, ok in zip(strat.mom[i], strat.elig[i]) if ok and np.isfinite(m)]
+        rank = 1 + sum(m > mom for m in elig)
+        text = (f"Aktien har gått {sv(mom, 0, pct=True, sign=True)} de senaste 12 månaderna (exklusive sista månaden), "
+                f"plats {rank} av {len(elig)} storbolag. Regeln äger de två starkaste så länge marknaden är i upptrend.")
+        rows = [["Utveckling 12 mån exkl. sista månaden", sv(mom, 1, pct=True, sign=True)], ["Plats bland storbolagen", f"{rank} av {len(elig)}"]]
+    elif key == "S6":
+        ev = E.report_events(earn, panel.calendar, list(panel.close.columns))
+        ev = ev[(ev.ticker == t) & (ev.react_i == i)]
+        e = earn[earn.ticker == t].copy()
+        e["d"] = pd.to_datetime(e["ts"], utc=True).dt.tz_convert(TZ)
+        rep = None
+        if len(ev):
+            # the earnings row closest in time to the report behind this event
+            rep = e.iloc[(e.d - pd.Timestamp(ev.iloc[0].report_ts)).abs().argsort()[:1]]
+        sur = float(ev.iloc[0].surprise) if len(ev) else None
+        est = float(rep.iloc[0].eps_estimate) if rep is not None and len(rep) else None
+        act = float(rep.iloc[0].eps_reported) if rep is not None and len(rep) else None
+        when = rep.iloc[0].d.strftime("%-d/%-m kl %H:%M") if rep is not None and len(rep) else "–"
+        text = (f"Rapporten ({when}) visade en vinst per aktie på {sv(act, 2)} kr mot analytikernas förväntade {sv(est, 2)} kr, "
+                f"{sv(sur / 100 if sur is not None else None, 0, pct=True)} bättre. Aktien steg {sv(day_ret, 1, pct=True, sign=True)} "
+                f"medan marknaden gick {sv(mkt, 1, pct=True, sign=True)}. Regeln satsar på att kursen fortsätter åt samma håll de närmaste veckorna.")
+        rows = [["Vinst per aktie, utfall", f"{sv(act, 2)} kr"], ["Vinst per aktie, förväntat", f"{sv(est, 2)} kr"],
+                ["Överraskning (krav: minst +10 %)", sv(sur / 100 if sur is not None else None, 1, pct=True, sign=True)],
+                ["Aktien minus marknaden på reaktionsdagen (krav: +2 %)", sv(day_ret - mkt, 1, pct=True, sign=True)]]
+    elif key == "S7":
+        v = panel.volume[t]
+        ratio = v.iloc[-1] / v.iloc[-51:-1].mean()
+        text = (f"Aktien steg {sv(day_ret, 1, pct=True, sign=True)} (marknaden {sv(mkt, 1, pct=True, sign=True)}) på {sv(ratio, 1)} gånger "
+                f"så hög volym som normalt. Så stora rörelser på tung volym beror oftast på ny information om bolaget, "
+                f"och regeln satsar på att kursen fortsätter åt samma håll.")
+        rows = [["Dagens uppgång", sv(day_ret, 1, pct=True, sign=True)], ["Marknaden samma dag", sv(mkt, 1, pct=True, sign=True)],
+                ["Volym mot 50-dagars snitt (krav: 3×)", f"{sv(ratio, 1)}×"],
+                ["Omsättning i dag", f"{sv(float(v.iloc[-1]) * raw_last / 1e6, 1)} Mkr"]]
+    else:
+        text = "Slumpvis vald bland likvida aktier. Slumpen finns med som kontroll: en strategi som inte slår den över tid har ingen fördel."
+    return {"text": text, "rows": rows, "price": price_context(panel, t)}
 
 
 def recent_miss(earn: pd.DataFrame, ticker: str, asof: pd.Timestamp, days: int = 45):
@@ -249,7 +344,7 @@ def run(univ_dir: Path, out: Path, now: datetime | None = None) -> dict:
                       "SLUMP": "Slumpvis vald (kontroll)"}[key]
             lp, nx = last_report(earn, t, asof)
             if t not in vcache:
-                vcache[t] = valuation(t)
+                vcache[t] = company_info(t)
             buy_day = add_trading_days(asof.date(), 1)
             sell_by, kind = planned_exit(key, buy_day, strat)
             actions.append({"strategy": key, "action": "KÖP", "ticker": t, "name": names.get(t, t),
@@ -257,7 +352,8 @@ def run(univ_dir: Path, out: Path, now: datetime | None = None) -> dict:
                             "stop_pct": getattr(strat, "stop", 0.0), "reason": reason,
                             "weight": r4(1 / getattr(strat, "max_positions", getattr(strat, "top_n", 2))),
                             "last_report": lp, "next_report": nx, "report_miss": recent_miss(earn, t, asof),
-                            "valuation": vcache[t], "buy_day": str(buy_day),
+                            "valuation": vcache[t]["valuation"], "company": vcache[t]["profile"],
+                            "detail": signal_detail(key, strat, panel, earn, t), "buy_day": str(buy_day),
                             "hold": HOLD_RULES[key][0], "hold_detail": HOLD_RULES[key][1],
                             "sell_by": str(sell_by), "sell_by_kind": kind})
         for t, p in held.items():
