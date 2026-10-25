@@ -256,7 +256,7 @@ def push(state: dict):
         for a in acts[:8]:
             name = state["strategies"][a["strategy"]]["name"]
             if a["action"] == "KÖP":
-                lines.append(f"KÖP {a['name']} · {name} · limit {a['limit']:.2f} kr")
+                lines.append(f"KÖP {a['name']} · {name} · limit {a['limit']:.2f} kr".replace(".", ","))
             else:
                 lines.append(f"SÄLJ {a['name']} · {name}")
         body = "\n".join(lines) + "\nPappersportfölj: ingen riktig affär behövs."
