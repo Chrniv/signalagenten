@@ -177,7 +177,7 @@ function slip(a, st){
   let afford = "";
   if(buy && a.last_close){
     const alloc = a.weight * s.value, n = Math.floor(alloc / a.last_close);
-    afford = n>=1 ? `<p class="small">Med riktiga pengar: ${n} st för cirka ${kr(n*a.last_close)} av strategins ${kr(alloc)}.</p>`
+    afford = n>=1 ? `<p class="small" style="margin:10px 0 0">Med riktiga pengar: ${n} st för cirka ${kr(n*a.last_close)} av strategins ${kr(alloc)}.</p>`
       : `<div class="flag">En aktie kostar ${kr(a.last_close)}, mer än strategins andel på ${kr(alloc)}. Går inte att köpa med 1 000 kr, pappersportföljen räknar med delar av aktier.</div>`;
   }
   const flag = a.report_miss ? `<div class="flag">Varning: rapporten ${dfmt(a.report_miss.date)} missade förväntan med ${nf(0).format(-a.report_miss.surprise_pct)} %. Sådana aktier har i snitt fortsatt nedåt.</div>` : "";
