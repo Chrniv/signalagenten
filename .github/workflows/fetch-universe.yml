@@ -1,0 +1,42 @@
+name: fetch-universe
+
+# Full Stockholm universe (≈410 shares): prices since 2005 + Yahoo earnings calendar.
+# Published to the `data-universe` branch (replaced on every run).
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "engine/universe_fetch.py"
+      - ".github/workflows/fetch-universe.yml"
+  schedule:
+    - cron: "41 4 * * 6"   # Saturdays 04:41 UTC
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fetch-universe
+  cancel-in-progress: true
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt requests
+      - run: python -m engine.universe_fetch
+      - name: Publish to the data-universe branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -rf /tmp/u && cp -r universe /tmp/u
+          git checkout --orphan pub
+          git rm -rf -q . || true
+          rm -rf universe && cp -r /tmp/u universe
+          git add universe && git commit -q -m "universe $(date -u +%FT%TZ)"
+          git push -f origin HEAD:data-universe
