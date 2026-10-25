@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Signalagenten</title>
+<meta name="description" content="Dagliga köp- och säljsignaler för Stockholmsbörsen, testade med pappersportföljer.">
+<meta name="theme-color" content="#1B2733">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Signaler">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF1F4; --surface:#FFFFFF; --ink:#1B2733; --muted:#5B6875; --line:#D5DCE3;
+  --up:#1F7A5C; --down:#B23A48; --act:#2E5BBA; --act-ink:#FFFFFF; --rand:#8A96A3;
+  --slip:#F7F9FB; --chip:#E6EBF0;
+  --c-S2:#2E5BBA; --c-S3:#7A4FB5; --c-S6:#1F7A5C; --c-S7:#C2701D; --c-SLUMP:#8A96A3; --c-B1:#1B2733; --c-B2:#9AA6B2;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121A22; --surface:#1A242E; --ink:#E6ECF2; --muted:#9AA7B4; --line:#2A3743;
+    --up:#4FBF95; --down:#E2717E; --act:#6E95E8; --act-ink:#0E1620; --rand:#7D8996;
+    --slip:#16202A; --chip:#24313D;
+    --c-S2:#6E95E8; --c-S3:#B08BE6; --c-S6:#4FBF95; --c-S7:#E8A055; --c-SLUMP:#7D8996; --c-B1:#E6ECF2; --c-B2:#5E6B78;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121A22; --surface:#1A242E; --ink:#E6ECF2; --muted:#9AA7B4; --line:#2A3743;
+  --up:#4FBF95; --down:#E2717E; --act:#6E95E8; --act-ink:#0E1620; --rand:#7D8996;
+  --slip:#16202A; --chip:#24313D;
+  --c-S2:#6E95E8; --c-S3:#B08BE6; --c-S6:#4FBF95; --c-S7:#E8A055; --c-SLUMP:#7D8996; --c-B1:#E6ECF2; --c-B2:#5E6B78;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Instrument Sans",system-ui,sans-serif;
+  font-variant-numeric:tabular-nums;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+main{max-width:640px;margin:0 auto;padding:20px 16px 64px}
+h1,h2,h3,.num{font-family:"Bricolage Grotesque",system-ui,sans-serif}
+h1{font-size:28px;line-height:1.1;margin:0;font-weight:700;letter-spacing:-.01em}
+h2{font-size:21px;line-height:1.2;margin:40px 0 12px;font-weight:700}
+h3{font-size:18px;margin:0;font-weight:700}
+p{margin:0 0 12px}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+.up{color:var(--up)} .down{color:var(--down)}
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.stamp{font-size:14px;color:var(--muted);margin-top:6px}
+.paper{display:inline-block;margin-top:10px;font-size:14px;padding:4px 10px;border-radius:999px;background:var(--chip);color:var(--ink)}
+.warn{background:color-mix(in srgb,var(--down) 14%,var(--surface));border:1px solid color-mix(in srgb,var(--down) 40%,transparent);
+  padding:12px 14px;border-radius:10px;margin-top:16px}
+button.icon{background:none;border:1px solid var(--line);color:var(--ink);border-radius:10px;width:40px;height:40px;font-size:18px;cursor:pointer}
+button:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid var(--act);outline-offset:2px}
+
+/* order slips: the "tonight" list */
+.slips{display:grid;gap:12px}
+.slip{background:var(--slip);border:1px solid var(--line);border-left:6px solid var(--act);border-radius:4px 12px 12px 4px;padding:14px 16px}
+.slip.sell{border-left-color:var(--down)}
+.slip-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.verb{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:700;font-size:15px;color:var(--act)}
+.slip.sell .verb{color:var(--down)}
+.slip-name{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:700;font-size:22px;line-height:1.15;margin:2px 0 8px}
+.tag{font-size:13px;padding:2px 9px;border-radius:999px;color:var(--act-ink);white-space:nowrap}
+.order{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:6px 0 10px}
+.order div{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.order b{display:block;font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:17px}
+.order span{font-size:12px;color:var(--muted)}
+.why{font-size:15px;margin:0 0 8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{font-size:13px;background:var(--chip);border-radius:6px;padding:2px 8px}
+.flag{font-size:14px;color:var(--down);margin-top:8px}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:16px}
+
+/* race */
+.race{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 12px 10px}
+.race svg{display:block;width:100%;height:auto}
+.legend{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:2px}
+.legend li{display:grid;grid-template-columns:22px 1fr auto auto;gap:10px;align-items:center;padding:7px 4px;border-top:1px solid var(--line)}
+.legend li:first-child{border-top:0}
+.sw{width:22px;height:0;border-top:3px solid}
+.sw.dash{border-top-style:dashed}
+.legend .val{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:700}
+.legend .ret{min-width:62px;text-align:right}
+
+/* strategies */
+details.strat{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.strat summary{list-style:none;cursor:pointer;padding:14px 16px;display:grid;grid-template-columns:10px 1fr auto;gap:12px;align-items:center}
+details.strat summary::-webkit-details-marker{display:none}
+.dot{width:10px;height:10px;border-radius:50%}
+.strat-body{padding:0 16px 16px}
+.verdict{font-size:14px;background:var(--chip);border-radius:8px;padding:8px 10px;margin:4px 0 12px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-weight:600;color:var(--muted);padding:6px 4px;border-bottom:1px solid var(--line)}
+td{padding:6px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+td.r,th.r{text-align:right}
+.about p{max-width:62ch}
+footer{margin-top:36px;font-size:13px;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){
+  .race path.line{stroke-dasharray:var(--len);stroke-dashoffset:var(--len);animation:draw 1.1s ease-out forwards}
+  @keyframes draw{to{stroke-dashoffset:0}}
+}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>Signalagenten</h1>
+      <div class="stamp" id="stamp">Hämtar dagens signaler…</div>
+      <span class="paper" id="mode">Pappersportföljer, inga riktiga pengar</span>
+    </div>
+    <button class="icon" id="theme" aria-label="Byt mellan ljust och mörkt läge">◐</button>
+  </header>
+  <div id="alert"></div>
+
+  <h2 id="todo-h">Inför i morgon</h2>
+  <div class="slips" id="todo"></div>
+
+  <h2>Kapplöpningen</h2>
+  <p class="muted small" id="race-sub">Varje strategi startade med 1 000 kr. Slumpen är linjen att slå.</p>
+  <div class="race" id="race"></div>
+
+  <h2>Strategierna</h2>
+  <div id="strats"></div>
+
+  <h2>Om testet</h2>
+  <div class="about">
+    <p>Alla fem strategierna testades först på historisk data och ingen blev godkänd. Nu körs de framåt med låtsaspengar, exakt enligt sina regler: beslut vid stängning, köp och sälj vid nästa dags öppning, Start-courtage och realistisk spread.</p>
+    <p>Om en strategi efter 6–12 månader tydligt slår både Slumpen och att bara äga alla aktierna kan vi prova den med riktiga 1 000 kr. Några bra veckor räcker inte, det är mest tur på så kort tid.</p>
+    <p class="muted small">Värderingstalen på signalerna kommer från Yahoo och är bara information. De påverkar inte signalerna och har inte testats.</p>
+  </div>
+  <footer id="foot"></footer>
+</main>
+<script>
+const STATE_URL = new URLSearchParams(location.search).get("state") ||
+  "https://raw.githubusercontent.com/Chrniv/signalagenten/live/live/state.json";
+const ORDER = ["S2","S3","S6","S7","SLUMP"];
+const nf = (d=0)=>new Intl.NumberFormat("sv-SE",{minimumFractionDigits:d,maximumFractionDigits:d});
+const kr = (x,d=0)=> x==null?"–":nf(d).format(x)+" kr";
+const pc = (x,d=1)=> x==null?"–":(x>0?"+":"")+nf(d).format(x*100)+" %";
+const cls = x=> x==null?"":(x>0?"up":(x<0?"down":""));
+const esc = s=> String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const dfmt = s=> new Date(s+"T12:00:00").toLocaleDateString("sv-SE",{weekday:"short",day:"numeric",month:"short"});
+const col = k=> `var(--c-${k})`;
+const dm = s=> `${+s.slice(8,10)}/${+s.slice(5,7)}`;
+
+// theme toggle, remembered per device
+(function(){
+  try{const t=localStorage.getItem("theme"); if(t) document.documentElement.dataset.theme=t;}catch(e){}
+  document.getElementById("theme").onclick=()=>{
+    const cur=document.documentElement.dataset.theme ||
+      (matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");
+    const nxt=cur==="dark"?"light":"dark";
+    document.documentElement.dataset.theme=nxt;
+    try{localStorage.setItem("theme",nxt);}catch(e){}
+  };
+})();
+
+function slip(a, st){
+  const s = st.strategies[a.strategy];
+  const buy = a.action==="KÖP";
+  const v = a.valuation||{};
+  const chips = Object.entries(v).slice(0,6).map(([k,x])=>{
+    let val=x;
+    if(k==="Börsvärde") val=nf(1).format(x/1e9)+" mdr";
+    else if(["ROE","Vinstmarginal","Omsättningstillväxt"].includes(k)) val=nf(0).format(x*100)+" %";
+    else if(k==="Direktavk.") val=nf(1).format(x)+" %";
+    else if(typeof x==="number") val=nf(1).format(x);
+    return `<span class="chip">${esc(k)} ${esc(val)}</span>`;}).join("");
+  const rep = a.last_report ? `Senaste rapport ${dfmt(a.last_report.date).replace(/\.$/,"")}: vinst/aktie ${nf(2).format(a.last_report.eps)} mot väntat ${nf(2).format(a.last_report.estimate)} (${pc(a.last_report.surprise_pct/100,0)}).` : "";
+  const nxt = a.next_report ? ` Nästa rapport ${dfmt(a.next_report).replace(/\.$/,"")}.` : "";
+  let afford = "";
+  if(buy && a.last_close){
+    const alloc = a.weight * s.value, n = Math.floor(alloc / a.last_close);
+    afford = n>=1 ? `<p class="small">Med riktiga pengar: ${n} st för cirka ${kr(n*a.last_close)} av strategins ${kr(alloc)}.</p>`
+      : `<div class="flag">En aktie kostar ${kr(a.last_close)}, mer än strategins andel på ${kr(alloc)}. Går inte att köpa med 1 000 kr, pappersportföljen räknar med delar av aktier.</div>`;
+  }
+  const flag = a.report_miss ? `<div class="flag">Varning: rapporten ${dfmt(a.report_miss.date)} missade förväntan med ${nf(0).format(-a.report_miss.surprise_pct)} %. Sådana aktier har i snitt fortsatt nedåt.</div>` : "";
+  const order = buy ? `<div class="order">
+      <div><span>Limit högst</span><b>${kr(a.limit,2)}</b></div>
+      <div><span>Andel</span><b>${nf(0).format(a.weight*100)} %</b></div>
+      <div><span>Stop-loss</span><b>${a.stop_pct?"−"+nf(0).format(a.stop_pct*100)+" %":"ingen"}</b></div></div>`
+    : `<div class="order"><div><span>Senast</span><b>${kr(a.last_close,2)}</b></div><div><span>Ägd</span><b>${a.days_held} dagar</b></div><div><span>Order</span><b>Sälj allt</b></div></div>`;
+  return `<article class="slip ${buy?"":"sell"}">
+    <div class="slip-top"><span class="verb">${buy?"Köp":"Sälj"}</span>
+      <span class="tag" style="background:${col(a.strategy)}">${esc(s.name)}</span></div>
+    <div class="slip-name">${esc(a.name)}</div>
+    ${order}
+    <p class="why">${esc(a.reason)}.</p>
+    ${rep||nxt?`<p class="small muted">${esc(rep+nxt)}</p>`:""}
+    ${chips?`<div class="chips">${chips}</div>`:""}
+    ${afford}${flag}
+  </article>`;
+}
+
+function race(st){
+  const series = ORDER.map(k=>({k, name:st.strategies[k].name, dates:st.strategies[k].equity.dates, vals:st.strategies[k].equity.values, dash:k==="SLUMP"}));
+  const b = st.benchmarks||{}; const bk = Object.keys(b);
+  bk.forEach((name,i)=>series.push({k:i===0?"B1":"B2", name, dates:b[name].dates, vals:b[name].values, dash:false, bench:true}));
+  const all = series.flatMap(s=>s.vals).filter(v=>v!=null);
+  const days = Math.max(...series.map(s=>s.dates.length));
+  let svg="";
+  if(days<2){
+    svg = `<div class="empty"><b>Kapplöpningen har precis börjat.</b><br><span class="muted">De första pappersaffärerna görs vid öppningen ${dfmt(nextWeekday(st.data_date))}. Kurvorna dyker upp här när det finns några dagar att jämföra.</span></div>`;
+  } else {
+    const W=600,H=260,P={l:44,r:10,t:10,b:26};
+    let lo=Math.min(...all,st.capital), hi=Math.max(...all,st.capital); const pad=(hi-lo)*0.08||10; lo-=pad; hi+=pad;
+    const dates=[...new Set(series.flatMap(s=>s.dates))].sort();
+    const x=d=>P.l+(dates.indexOf(d)/(dates.length-1))*(W-P.l-P.r);
+    const y=v=>P.t+(1-(v-lo)/(hi-lo))*(H-P.t-P.b);
+    const ticks=[lo+pad, st.capital, hi-pad].filter((v,i,a)=>a.indexOf(v)===i);
+    svg=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Värdeutveckling per strategi sedan start">`;
+    ticks.forEach(v=>{svg+=`<line x1="${P.l}" x2="${W-P.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" ${v===st.capital?"":'stroke-dasharray="2 4"'}/>
+      <text x="${P.l-6}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${nf(0).format(v)}</text>`;});
+    svg+=`<text x="${P.l}" y="${H-6}" font-size="11" fill="var(--muted)">${dfmt(dates[0])}</text>
+          <text x="${W-P.r}" y="${H-6}" font-size="11" text-anchor="end" fill="var(--muted)">${dfmt(dates[dates.length-1])}</text>`;
+    series.forEach(s=>{
+      const pts=s.dates.map((d,i)=>s.vals[i]==null?null:`${x(d).toFixed(1)},${y(s.vals[i]).toFixed(1)}`).filter(Boolean);
+      if(pts.length<2) return;
+      svg+=`<path class="line" d="M${pts.join("L")}" fill="none" stroke="${col(s.k)}" stroke-width="${s.bench?1.5:2.5}" ${s.dash?'stroke-dasharray="6 5"':""} stroke-linejoin="round" stroke-linecap="round" style="--len:2000"/>`;
+    });
+    svg+="</svg>";
+  }
+  const rows = series.map(s=>{const v=s.vals[s.vals.length-1]; const r=v!=null?v/st.capital-1:null; return {...s,v,r};})
+    .sort((a,b)=>(b.v??0)-(a.v??0));
+  const legend = `<ul class="legend">${rows.map(s=>`<li><span class="sw ${s.dash?"dash":""}" style="border-color:${col(s.k)}"></span>
+      <span>${esc(s.name)}${s.bench?' <span class="muted small">jämförelse</span>':""}</span>
+      <span class="val">${kr(s.v)}</span><span class="ret ${cls(s.r)}">${pc(s.r)}</span></li>`).join("")}</ul>`;
+  return svg+legend;
+}
+
+function nextWeekday(ds){const d=new Date(ds+"T12:00:00"); do{d.setDate(d.getDate()+1);}while([0,6].includes(d.getDay())); return d.toISOString().slice(0,10);}
+
+function strat(k, st){
+  const s=st.strategies[k];
+  const pos = s.positions.length ? `<table><thead><tr><th>Innehav</th><th class="r">Dagar</th><th class="r">Värde</th><th class="r">Resultat</th></tr></thead><tbody>${
+      s.positions.map(p=>`<tr><td>${esc(p.name)}</td><td class="r">${p.days_held}</td><td class="r">${kr(p.value)}</td><td class="r ${cls(p.ret)}">${pc(p.ret)}</td></tr>`).join("")}</tbody></table>`
+    : `<p class="muted small">${k==="S3"?"Inga innehav. Momentum byter bara vid månadsskiften.":"Inga innehav just nu, allt ligger i kassan."}</p>`;
+  const trades = s.trades.length ? `<h3 style="margin-top:16px">Avslutade affärer</h3><table><thead><tr><th>Aktie</th><th>Köpt–sålt</th><th class="r">Resultat</th></tr></thead><tbody>${
+      s.trades.slice(0,12).map(t=>`<tr><td>${esc(t.name)}<div class="muted small">${esc(t.why)}</div></td><td>${dm(t.entry)}–${dm(t.exit)}</td><td class="r ${cls(t.ret)}">${pc(t.ret)}</td></tr>`).join("")}</tbody></table>` : "";
+  return `<details class="strat"><summary><span class="dot" style="background:${col(k)}"></span>
+      <span><h3>${esc(s.name)}</h3><span class="muted small">${s.n_trades} affärer${s.win_rate!=null?", "+nf(0).format(s.win_rate*100)+" % vinnare":""}</span></span>
+      <span class="num ${cls(s.ret)}" style="font-weight:700">${pc(s.ret)}</span></summary>
+    <div class="strat-body"><p class="small">${esc(s.how)}</p><div class="verdict">${esc(s.backtest)}</div>${pos}${trades}
+      <p class="muted small" style="margin-top:12px">Kassa ${kr(s.cash)}${s.max_dd!=null?`, största nedgång ${pc(s.max_dd)}`:""}.</p></div></details>`;
+}
+
+async function load(){
+  let st;
+  try{
+    const r = await fetch(STATE_URL+(STATE_URL.includes("?")?"&":"?")+"t="+Date.now(),{cache:"no-store"});
+    if(!r.ok) throw new Error(r.status);
+    st = await r.json();
+  }catch(e){
+    document.getElementById("stamp").textContent="Kunde inte hämta signalerna. Kontrollera nätet och dra ner för att ladda om.";
+    return;
+  }
+  const gen = new Date(st.generated_utc);
+  document.getElementById("stamp").textContent =
+    `Kurser från ${dfmt(st.data_date)}, uppdaterat ${gen.toLocaleString("sv-SE",{weekday:"short",hour:"2-digit",minute:"2-digit"})}`;
+  if(st.stale) document.getElementById("alert").innerHTML =
+    `<div class="warn">Dagens kurser saknades när agenten körde (senaste är från ${dfmt(st.data_date)}). Signalerna nedan gäller den dagen.</div>`;
+  document.getElementById("todo-h").textContent = `Inför ${dfmt(nextWeekday(st.data_date))}`;
+  const acts=[...st.actions].sort((a,b)=>(a.action==="SÄLJ")-(b.action==="SÄLJ")||ORDER.indexOf(a.strategy)-ORDER.indexOf(b.strategy));
+  document.getElementById("todo").innerHTML = acts.length ? acts.map(a=>slip(a,st)).join("")
+    : `<div class="empty"><b>Inget att göra.</b><br><span class="muted">Ingen strategi vill köpa eller sälja vid nästa öppning.</span></div>`;
+  document.getElementById("race").innerHTML = race(st);
+  document.getElementById("race-sub").textContent = `Varje strategi startade med ${kr(st.capital)} den ${dfmt(st.forward_start)}. Slumpen är linjen att slå.`;
+  document.getElementById("strats").innerHTML = ORDER.map(k=>strat(k,st)).join("");
+  document.getElementById("foot").textContent = "Signalerna är regelbaserade och testade. De är inga råd och inga löften om avkastning.";
+}
+load();
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") load(); });
+if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
+</script>
+</body>
+</html>

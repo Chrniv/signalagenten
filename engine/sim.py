@@ -62,7 +62,8 @@ class Result:
 
 
 # ======================================================================= stocks
-def run_stocks(strategy, panel, costs: Costs, start=None, end=None, capital=1000.0) -> Result:
+def run_stocks(strategy, panel, costs: Costs, start=None, end=None, capital=1000.0, live: bool = False) -> Result:
+    """live=True also takes the decision at the last bar and returns open positions + next holdings in meta."""
     strategy.prepare(panel)
     cal = panel.calendar
     O, H, L, C = (panel.open.to_numpy(), panel.high.to_numpy(), panel.low.to_numpy(), panel.close.to_numpy())
@@ -155,10 +156,18 @@ def run_stocks(strategy, panel, costs: Costs, start=None, end=None, capital=1000
         if pos:
             invested_days += 1
         # 4) decide for tomorrow
-        if i < i1:
+        if i < i1 or live:
             want = strategy.decide(i, {t: {"entry_i": p["entry_i"]} for t, p in pos.items()})
             if set(want) != set(pos):
                 pending = (want, val)
+    meta = {}
+    if live:
+        meta["cash"] = cash
+        meta["next"] = sorted(pending[0]) if pending is not None else sorted(pos)
+        meta["open"] = [{"ticker": t, "entry_date": str(cal[p["entry_i"]].date()), "entry_i": p["entry_i"],
+                         "days_held": i1 - p["entry_i"] + 1, "entry_px": p["entry_px"], "shares": p["shares"],
+                         "last": float(C[i1, col[t]]), "stop_px": p["stop_px"], "cost_in": p["cost_in"]}
+                        for t, p in pos.items()]
     # close everything at the end for trade statistics (no costs: it's bookkeeping)
     for t in list(pos):
         p = pos.pop(t)
@@ -167,7 +176,7 @@ def run_stocks(strategy, panel, costs: Costs, start=None, end=None, capital=1000
                        "entry_px": p["entry_px"], "exit_px": px, "shares": p["shares"],
                        "pnl": p["shares"] * px - p["cost_in"], "ret": p["shares"] * px / p["cost_in"] - 1})
     eq = pd.Series(equity, index=cal[i0:i1 + 1], name=strategy.name)
-    return Result(eq, pd.DataFrame(trades), costs_paid, invested_days / max(1, len(eq)))
+    return Result(eq, pd.DataFrame(trades), costs_paid, invested_days / max(1, len(eq)), meta)
 
 
 # ======================================================================= funds

@@ -1,0 +1,46 @@
+name: daily-signals
+
+# Every weekday after the Stockholm close: fresh prices + report calendar, paper portfolios,
+# tomorrow's signals -> live/state.json on the `live` branch (read by the app) + push via ntfy.
+on:
+  schedule:
+    - cron: "25 17 * * 1-5"    # 18:25 Stockholm in winter, 19:25 in summer
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "engine/live.py"
+      - ".github/workflows/live.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: live
+  cancel-in-progress: false
+
+jobs:
+  signals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: python -m pytest -q
+      - name: Signals and paper portfolios
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: python -m engine.live --out live
+      - name: Publish to the live branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -rf /tmp/l && cp -r live /tmp/l
+          git checkout --orphan pub
+          git rm -rf -q . || true
+          rm -rf live && cp -r /tmp/l live
+          git add -f live && git commit -q -m "signals $(date -u +%FT%TZ)"
+          git push -f origin HEAD:live
