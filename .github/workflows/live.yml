@@ -1,7 +1,8 @@
 name: daily-signals
 
 # Every weekday after the Stockholm close: fresh prices + report calendar, paper portfolios,
-# tomorrow's signals -> live/state.json on the `live` branch (read by the app) + push via ntfy.
+# tomorrow's signals -> live/state.json on the `live` branch (read by the app) + push via ntfy
+# (topic in the repository secret NTFY_TOPIC).
 on:
   schedule:
     - cron: "25 17 * * 1-5"    # 18:25 Stockholm in winter, 19:25 in summer
