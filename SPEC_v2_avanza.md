@@ -1,6 +1,8 @@
 # Gate 1 (revised) — Signal Agent for Manual Trading on Avanza
 
 **Status:** awaiting Chris's approval · **Date:** 2026-10-25 · **Replaces** the Kraken spec as the live plan. Kraken stays available as an optional crypto track later.
+> **Update 2026-10-25 (approved by Chris):** stocks and funds only, all within Avanza — no crypto, gold or ETPs. S1 now rotates between a Swedish index fund, a global index fund and cash (fixed income fund). Funds trade at the day's NAV (orders before 15:00), with no courtage. Courtage class unknown, so both Mini and Start are tested. Notifications via push to an installable phone app (as Tipsmotorn), with fills confirmed in the app instead of Telegram.
+
 **Rule:** no performance numbers exist yet. Anything marked *assumption* or *estimate* is mine and has not been measured.
 
 ---
