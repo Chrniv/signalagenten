@@ -1,0 +1,718 @@
+{
+ "generated_utc": "2026-10-30T21:46:13+00:00",
+ "data_date": "2026-10-30",
+ "expected_date": "2026-10-30",
+ "forward_start": "2026-10-23",
+ "capital": 1000.0,
+ "mode": "papper",
+ "app_url": "https://chrniv.github.io/signalagenten/",
+ "strategies": {
+  "S2": {
+   "name": "Dippköp",
+   "how": "Köper storbolag i upptrend (över 200-dagars snitt) efter en kraftig dipp (RSI(2) under 10). Säljer när kursen studsar över 5-dagars snitt eller efter 5 dagar. Stop-loss −8 %. Max 2 aktier.",
+   "backtest": "Underkänd i backtest 2006–2018: Sharpe 0,63 med Start-courtage (kravet var 0,7) och förlust med Mini.",
+   "hold": "Upp till 5 handelsdagar",
+   "hold_detail": "Säljs tidigare om kursen studsar, alltså stänger över sitt 5-dagars snitt, eller om stop-lossen löser ut.",
+   "equity": {
+    "dates": [
+     "2026-10-23",
+     "2026-10-26",
+     "2026-10-27",
+     "2026-10-28",
+     "2026-10-29",
+     "2026-10-30"
+    ],
+    "values": [
+     1000.0,
+     1009.6883,
+     1024.2361,
+     1018.6622,
+     1016.4126,
+     1034.5437
+    ]
+   },
+   "value": 1034.5437,
+   "cash": 0.0,
+   "ret": 0.0345,
+   "max_dd": -0.0076,
+   "n_trades": 2,
+   "win_rate": 1.0,
+   "positions": [
+    {
+     "sell_by": "2026-11-04",
+     "sell_by_kind": "senast",
+     "ticker": "ESSITY-B.ST",
+     "name": "Essity B",
+     "entry_date": "2026-10-28",
+     "days_held": 3,
+     "value": 524.4106,
+     "ret": 0.024,
+     "stop_dist": 0.113
+    },
+    {
+     "sell_by": "2026-11-04",
+     "sell_by_kind": "senast",
+     "ticker": "SECU-B.ST",
+     "name": "Securitas B",
+     "entry_date": "2026-10-28",
+     "days_held": 3,
+     "value": 510.1331,
+     "ret": -0.0024,
+     "stop_dist": 0.0843
+    }
+   ],
+   "trades": [
+    {
+     "ticker": "SWED-A.ST",
+     "name": "Swedbank A",
+     "entry": "2026-10-26",
+     "exit": "2026-10-28",
+     "why": "regel",
+     "ret": 0.0168,
+     "pnl": 8.4128
+    },
+    {
+     "ticker": "SEB-A.ST",
+     "name": "SEB A",
+     "entry": "2026-10-26",
+     "exit": "2026-10-28",
+     "why": "regel",
+     "ret": 0.0302,
+     "pnl": 15.0787
+    }
+   ],
+   "actions": [
+    {
+     "strategy": "S2",
+     "action": "KÖP",
+     "ticker": "SCA-B.ST",
+     "name": "SCA B",
+     "last_close": 120.4,
+     "limit": 122.808,
+     "stop_pct": 0.08,
+     "reason": "Kraftig dipp i upptrend (RSI(2) under 10)",
+     "weight": 0.5,
+     "last_report": {
+      "date": "2026-10-23",
+      "surprise_pct": 11.78,
+      "eps": 1.1,
+      "estimate": 0.98
+     },
+     "next_report": "2027-01-29",
+     "report_miss": null,
+     "valuation": {
+      "P/E": 38.589745,
+      "P/E (prognos)": 18.187311,
+      "P/B": 0.8313711,
+      "EV/EBITDA": 31.39,
+      "ROE": 0.02095,
+      "Vinstmarginal": 0.09255,
+      "Skuld/EK": 15.124,
+      "Direktavk.": 2.45,
+      "Omsättningstillväxt": 0.082,
+      "Börsvärde": 84562034688
+     },
+     "company": {
+      "sector": "Basic Materials",
+      "industry": "Paper & Paper Products",
+      "employees": 3380,
+      "website": "https://www.sca.com",
+      "city": "Sundsvall",
+      "country": "Sweden",
+      "summary": "Svenska Cellulosa Aktiebolaget SCA (publ) operates in the forest business in Sweden, Germany, the United States, the United Kingdom, the rest of Europe, Asia, and internationally. It operates in five segments: Forest, Wood, Pulp, Containerboard, and Renewable Energy."
+     },
+     "detail": {
+      "text": "Aktien har fallit 3,4 % på tre dagar, men ligger fortfarande 9,2 % över sitt 200-dagars snitt. Regeln köper sådana kraftiga dippar i en upptrend och säljer när kursen studsar tillbaka.",
+      "rows": [
+       [
+        "RSI(2), köp under 10",
+        "1,6"
+       ],
+       [
+        "Förändring senaste 3 dagarna",
+        "−3,4 %"
+       ],
+       [
+        "Över 200-dagars snitt med",
+        "9,2 %"
+       ],
+       [
+        "Säljs om den stänger över (5-dagars snitt i dag)",
+        "122,89 kr"
+       ]
+      ],
+      "price": [
+       [
+        "Kursutveckling 1 månad",
+        "+0,6 %"
+       ],
+       [
+        "Kursutveckling 3 månader",
+        "+7,8 %"
+       ],
+       [
+        "Kursutveckling 12 månader",
+        "−1,7 %"
+       ],
+       [
+        "Från 52-veckorshögsta",
+        "−5,5 %"
+       ],
+       [
+        "52 veckor, lägst–högst",
+        "97,22–127,40 kr"
+       ]
+      ]
+     },
+     "buy_day": "2026-11-02",
+     "hold": "Upp till 5 handelsdagar",
+     "hold_detail": "Säljs tidigare om kursen studsar, alltså stänger över sitt 5-dagars snitt, eller om stop-lossen löser ut.",
+     "sell_by": "2026-11-09",
+     "sell_by_kind": "senast"
+    },
+    {
+     "strategy": "S2",
+     "action": "KÖP",
+     "ticker": "SINCH.ST",
+     "name": "Sinch",
+     "last_close": 43.42,
+     "limit": 44.2884,
+     "stop_pct": 0.08,
+     "reason": "Kraftig dipp i upptrend (RSI(2) under 10)",
+     "weight": 0.5,
+     "last_report": {
+      "date": "2026-07-22",
+      "surprise_pct": -20.64,
+      "eps": 0.61,
+      "estimate": 0.77
+     },
+     "next_report": "2026-11-05",
+     "report_miss": null,
+     "valuation": {
+      "P/E": 72.36666,
+      "P/E (prognos)": 57.89333,
+      "P/B": 1.3271388,
+      "EV/EBITDA": 13.835,
+      "ROE": 0.0189,
+      "Vinstmarginal": 0.01714,
+      "Skuld/EK": 35.493,
+      "Direktavk.": 0.0,
+      "Omsättningstillväxt": 0.038,
+      "Börsvärde": 30507030528
+     },
+     "company": {
+      "sector": "Communication Services",
+      "industry": "Telecom Services",
+      "employees": 3579,
+      "website": "https://sinch.com",
+      "city": "Stockholm",
+      "country": "Sweden",
+      "summary": "Sinch AB (publ), together with its subsidiaries, provides cloud communication services and digital customer engagement channels to the enterprise sector. The company offers email, messaging, verification, voice, numbers, and other APIs, as well as chatbot builder, contact center, and other applications; and channels and core systems. It also provides solutions for marketing campaigns, customer updates and services, identity and verifications, operations, and security and risk. The company serves various industries, including financial services, healthcare, media and entertainment, retail, telecommunications, and travel and transport."
+     },
+     "detail": {
+      "text": "Aktien har fallit 9,4 % på tre dagar, men ligger fortfarande 21,6 % över sitt 200-dagars snitt. Regeln köper sådana kraftiga dippar i en upptrend och säljer när kursen studsar tillbaka.",
+      "rows": [
+       [
+        "RSI(2), köp under 10",
+        "3,5"
+       ],
+       [
+        "Förändring senaste 3 dagarna",
+        "−9,4 %"
+       ],
+       [
+        "Över 200-dagars snitt med",
+        "21,6 %"
+       ],
+       [
+        "Säljs om den stänger över (5-dagars snitt i dag)",
+        "46,39 kr"
+       ]
+      ],
+      "price": [
+       [
+        "Kursutveckling 1 månad",
+        "−4,7 %"
+       ],
+       [
+        "Kursutveckling 3 månader",
+        "+6,1 %"
+       ],
+       [
+        "Kursutveckling 12 månader",
+        "+30,8 %"
+       ],
+       [
+        "Från 52-veckorshögsta",
+        "−15,9 %"
+       ],
+       [
+        "52 veckor, lägst–högst",
+        "20,14–51,60 kr"
+       ]
+      ]
+     },
+     "buy_day": "2026-11-02",
+     "hold": "Upp till 5 handelsdagar",
+     "hold_detail": "Säljs tidigare om kursen studsar, alltså stänger över sitt 5-dagars snitt, eller om stop-lossen löser ut.",
+     "sell_by": "2026-11-09",
+     "sell_by_kind": "senast"
+    },
+    {
+     "strategy": "S2",
+     "action": "SÄLJ",
+     "ticker": "ESSITY-B.ST",
+     "name": "Essity B",
+     "last_close": 280.0,
+     "reason": "Kursen har studsat över 5-dagars snitt",
+     "days_held": 3
+    },
+    {
+     "strategy": "S2",
+     "action": "SÄLJ",
+     "ticker": "SECU-B.ST",
+     "name": "Securitas B",
+     "last_close": 155.4,
+     "reason": "Kursen har studsat över 5-dagars snitt",
+     "days_held": 3
+    }
+   ]
+  },
+  "S3": {
+   "name": "Momentum",
+   "how": "Vid varje månadsskifte: håll de 2 storbolag som gått bäst senaste 12 månaderna (exkl. sista månaden), men bara när marknaden ligger över sitt 200-dagars snitt.",
+   "backtest": "Underkänd i backtest 2006–2018: Sharpe 0,52, sämre än att bara äga alla aktierna (0,60).",
+   "hold": "Minst till månadsskiftet",
+   "hold_detail": "Omprövas sista handelsdagen varje månad. Behålls så länge aktien är bland de 2 starkaste och marknaden ligger i upptrend.",
+   "equity": {
+    "dates": [
+     "2026-10-23",
+     "2026-10-26",
+     "2026-10-27",
+     "2026-10-28",
+     "2026-10-29",
+     "2026-10-30"
+    ],
+    "values": [
+     1000.0,
+     1000.0,
+     1000.0,
+     1000.0,
+     1000.0,
+     1000.0
+    ]
+   },
+   "value": 1000.0,
+   "cash": 1000.0,
+   "ret": 0.0,
+   "max_dd": 0.0,
+   "n_trades": 0,
+   "win_rate": null,
+   "positions": [],
+   "trades": [],
+   "actions": []
+  },
+  "S6": {
+   "name": "Rapportdrift",
+   "how": "Köper dagen efter en kvartalsrapport som slagit analytikernas vinstförväntan med minst 10 % och där aktien slagit marknaden med minst 2 % på rapportdagen. Håller 30 handelsdagar, stop-loss −10 %. Max 2 aktier.",
+   "backtest": "Underkänd i backtest 2020–2023: Sharpe 0,25. Efter starka rapporter har svenska aktier i snitt inte fortsatt uppåt.",
+   "hold": "30 handelsdagar, cirka 6 veckor",
+   "hold_detail": "Säljs tidigare bara om stop-lossen löser ut.",
+   "equity": {
+    "dates": [
+     "2026-10-23",
+     "2026-10-26",
+     "2026-10-27",
+     "2026-10-28",
+     "2026-10-29",
+     "2026-10-30"
+    ],
+    "values": [
+     1000.0,
+     970.9513,
+     978.8747,
+     974.4666,
+     967.2631,
+     969.9498
+    ]
+   },
+   "value": 969.9498,
+   "cash": 0.0,
+   "ret": -0.0301,
+   "max_dd": -0.0327,
+   "n_trades": 0,
+   "win_rate": null,
+   "positions": [
+    {
+     "sell_by": "2026-12-07",
+     "sell_by_kind": "senast",
+     "ticker": "KNOW.ST",
+     "name": "Knowit",
+     "entry_date": "2026-10-26",
+     "days_held": 5,
+     "value": 483.1667,
+     "ret": -0.0337,
+     "stop_dist": 0.0737
+    },
+    {
+     "sell_by": "2026-12-07",
+     "sell_by_kind": "senast",
+     "ticker": "BHG.ST",
+     "name": "BHG Group",
+     "entry_date": "2026-10-26",
+     "days_held": 5,
+     "value": 486.7831,
+     "ret": -0.0264,
+     "stop_dist": 0.0817
+    }
+   ],
+   "trades": [],
+   "actions": []
+  },
+  "S7": {
+   "name": "Volymlyft",
+   "how": "Köper dagen efter att en aktie slagit marknaden med minst 4 % på minst 3 gånger normal volym. Håller 30 handelsdagar, stop-loss −10 %. Max 2 aktier.",
+   "backtest": "Underkänd i backtest 2006–2018: Sharpe 0,04, sämre än slumpen.",
+   "hold": "30 handelsdagar, cirka 6 veckor",
+   "hold_detail": "Säljs tidigare bara om stop-lossen löser ut.",
+   "equity": {
+    "dates": [
+     "2026-10-23",
+     "2026-10-26",
+     "2026-10-27",
+     "2026-10-28",
+     "2026-10-29",
+     "2026-10-30"
+    ],
+    "values": [
+     1000.0,
+     918.945,
+     921.6834,
+     922.1495,
+     909.2819,
+     891.7594
+    ]
+   },
+   "value": 891.7594,
+   "cash": 0.0,
+   "ret": -0.1082,
+   "max_dd": -0.1082,
+   "n_trades": 2,
+   "win_rate": 0.0,
+   "positions": [
+    {
+     "sell_by": "2026-12-08",
+     "sell_by_kind": "senast",
+     "ticker": "YUBICO.ST",
+     "name": "Yubico",
+     "entry_date": "2026-10-27",
+     "days_held": 4,
+     "value": 447.7425,
+     "ret": -0.003,
+     "stop_dist": 0.1078
+    },
+    {
+     "sell_by": "2026-12-09",
+     "sell_by_kind": "senast",
+     "ticker": "PREV-B.ST",
+     "name": "Prevas B",
+     "entry_date": "2026-10-28",
+     "days_held": 3,
+     "value": 444.0169,
+     "ret": -0.0113,
+     "stop_dist": 0.0985
+    }
+   ],
+   "trades": [
+    {
+     "ticker": "MCAP.ST",
+     "name": "MedCap",
+     "entry": "2026-10-26",
+     "exit": "2026-10-27",
+     "why": "stop-loss",
+     "ret": -0.1018,
+     "pnl": -50.9
+    },
+    {
+     "ticker": "ROKO-B.ST",
+     "name": "Röko B",
+     "entry": "2026-10-26",
+     "exit": "2026-10-26",
+     "why": "stop-loss",
+     "ret": -0.1018,
+     "pnl": -50.9
+    }
+   ],
+   "actions": []
+  },
+  "SLUMP": {
+   "name": "Slumpen",
+   "how": "Kontrollgrupp: köper slumpvisa aktier, håller 30 dagar, stop-loss −10 %. En strategi som inte slår Slumpen över tid har ingen fördel.",
+   "backtest": "Kontroll — ska inte ha någon fördel.",
+   "hold": "30 handelsdagar, cirka 6 veckor",
+   "hold_detail": "Säljs tidigare bara om stop-lossen löser ut.",
+   "equity": {
+    "dates": [
+     "2026-10-23",
+     "2026-10-26",
+     "2026-10-27",
+     "2026-10-28",
+     "2026-10-29",
+     "2026-10-30"
+    ],
+    "values": [
+     1000.0,
+     1000.0,
+     1000.0,
+     1000.0,
+     1000.0,
+     1000.0
+    ]
+   },
+   "value": 1000.0,
+   "cash": 1000.0,
+   "ret": 0.0,
+   "max_dd": 0.0,
+   "n_trades": 0,
+   "win_rate": null,
+   "positions": [],
+   "trades": [],
+   "actions": []
+  }
+ },
+ "actions": [
+  {
+   "strategy": "S2",
+   "action": "KÖP",
+   "ticker": "SCA-B.ST",
+   "name": "SCA B",
+   "last_close": 120.4,
+   "limit": 122.808,
+   "stop_pct": 0.08,
+   "reason": "Kraftig dipp i upptrend (RSI(2) under 10)",
+   "weight": 0.5,
+   "last_report": {
+    "date": "2026-10-23",
+    "surprise_pct": 11.78,
+    "eps": 1.1,
+    "estimate": 0.98
+   },
+   "next_report": "2027-01-29",
+   "report_miss": null,
+   "valuation": {
+    "P/E": 38.589745,
+    "P/E (prognos)": 18.187311,
+    "P/B": 0.8313711,
+    "EV/EBITDA": 31.39,
+    "ROE": 0.02095,
+    "Vinstmarginal": 0.09255,
+    "Skuld/EK": 15.124,
+    "Direktavk.": 2.45,
+    "Omsättningstillväxt": 0.082,
+    "Börsvärde": 84562034688
+   },
+   "company": {
+    "sector": "Basic Materials",
+    "industry": "Paper & Paper Products",
+    "employees": 3380,
+    "website": "https://www.sca.com",
+    "city": "Sundsvall",
+    "country": "Sweden",
+    "summary": "Svenska Cellulosa Aktiebolaget SCA (publ) operates in the forest business in Sweden, Germany, the United States, the United Kingdom, the rest of Europe, Asia, and internationally. It operates in five segments: Forest, Wood, Pulp, Containerboard, and Renewable Energy."
+   },
+   "detail": {
+    "text": "Aktien har fallit 3,4 % på tre dagar, men ligger fortfarande 9,2 % över sitt 200-dagars snitt. Regeln köper sådana kraftiga dippar i en upptrend och säljer när kursen studsar tillbaka.",
+    "rows": [
+     [
+      "RSI(2), köp under 10",
+      "1,6"
+     ],
+     [
+      "Förändring senaste 3 dagarna",
+      "−3,4 %"
+     ],
+     [
+      "Över 200-dagars snitt med",
+      "9,2 %"
+     ],
+     [
+      "Säljs om den stänger över (5-dagars snitt i dag)",
+      "122,89 kr"
+     ]
+    ],
+    "price": [
+     [
+      "Kursutveckling 1 månad",
+      "+0,6 %"
+     ],
+     [
+      "Kursutveckling 3 månader",
+      "+7,8 %"
+     ],
+     [
+      "Kursutveckling 12 månader",
+      "−1,7 %"
+     ],
+     [
+      "Från 52-veckorshögsta",
+      "−5,5 %"
+     ],
+     [
+      "52 veckor, lägst–högst",
+      "97,22–127,40 kr"
+     ]
+    ]
+   },
+   "buy_day": "2026-11-02",
+   "hold": "Upp till 5 handelsdagar",
+   "hold_detail": "Säljs tidigare om kursen studsar, alltså stänger över sitt 5-dagars snitt, eller om stop-lossen löser ut.",
+   "sell_by": "2026-11-09",
+   "sell_by_kind": "senast"
+  },
+  {
+   "strategy": "S2",
+   "action": "KÖP",
+   "ticker": "SINCH.ST",
+   "name": "Sinch",
+   "last_close": 43.42,
+   "limit": 44.2884,
+   "stop_pct": 0.08,
+   "reason": "Kraftig dipp i upptrend (RSI(2) under 10)",
+   "weight": 0.5,
+   "last_report": {
+    "date": "2026-07-22",
+    "surprise_pct": -20.64,
+    "eps": 0.61,
+    "estimate": 0.77
+   },
+   "next_report": "2026-11-05",
+   "report_miss": null,
+   "valuation": {
+    "P/E": 72.36666,
+    "P/E (prognos)": 57.89333,
+    "P/B": 1.3271388,
+    "EV/EBITDA": 13.835,
+    "ROE": 0.0189,
+    "Vinstmarginal": 0.01714,
+    "Skuld/EK": 35.493,
+    "Direktavk.": 0.0,
+    "Omsättningstillväxt": 0.038,
+    "Börsvärde": 30507030528
+   },
+   "company": {
+    "sector": "Communication Services",
+    "industry": "Telecom Services",
+    "employees": 3579,
+    "website": "https://sinch.com",
+    "city": "Stockholm",
+    "country": "Sweden",
+    "summary": "Sinch AB (publ), together with its subsidiaries, provides cloud communication services and digital customer engagement channels to the enterprise sector. The company offers email, messaging, verification, voice, numbers, and other APIs, as well as chatbot builder, contact center, and other applications; and channels and core systems. It also provides solutions for marketing campaigns, customer updates and services, identity and verifications, operations, and security and risk. The company serves various industries, including financial services, healthcare, media and entertainment, retail, telecommunications, and travel and transport."
+   },
+   "detail": {
+    "text": "Aktien har fallit 9,4 % på tre dagar, men ligger fortfarande 21,6 % över sitt 200-dagars snitt. Regeln köper sådana kraftiga dippar i en upptrend och säljer när kursen studsar tillbaka.",
+    "rows": [
+     [
+      "RSI(2), köp under 10",
+      "3,5"
+     ],
+     [
+      "Förändring senaste 3 dagarna",
+      "−9,4 %"
+     ],
+     [
+      "Över 200-dagars snitt med",
+      "21,6 %"
+     ],
+     [
+      "Säljs om den stänger över (5-dagars snitt i dag)",
+      "46,39 kr"
+     ]
+    ],
+    "price": [
+     [
+      "Kursutveckling 1 månad",
+      "−4,7 %"
+     ],
+     [
+      "Kursutveckling 3 månader",
+      "+6,1 %"
+     ],
+     [
+      "Kursutveckling 12 månader",
+      "+30,8 %"
+     ],
+     [
+      "Från 52-veckorshögsta",
+      "−15,9 %"
+     ],
+     [
+      "52 veckor, lägst–högst",
+      "20,14–51,60 kr"
+     ]
+    ]
+   },
+   "buy_day": "2026-11-02",
+   "hold": "Upp till 5 handelsdagar",
+   "hold_detail": "Säljs tidigare om kursen studsar, alltså stänger över sitt 5-dagars snitt, eller om stop-lossen löser ut.",
+   "sell_by": "2026-11-09",
+   "sell_by_kind": "senast"
+  },
+  {
+   "strategy": "S2",
+   "action": "SÄLJ",
+   "ticker": "ESSITY-B.ST",
+   "name": "Essity B",
+   "last_close": 280.0,
+   "reason": "Kursen har studsat över 5-dagars snitt",
+   "days_held": 3
+  },
+  {
+   "strategy": "S2",
+   "action": "SÄLJ",
+   "ticker": "SECU-B.ST",
+   "name": "Securitas B",
+   "last_close": 155.4,
+   "reason": "Kursen har studsat över 5-dagars snitt",
+   "days_held": 3
+  }
+ ],
+ "stale": false,
+ "benchmarks": {
+  "OMXS30": {
+   "dates": [
+    "2026-10-23",
+    "2026-10-26",
+    "2026-10-27",
+    "2026-10-28",
+    "2026-10-29",
+    "2026-10-30"
+   ],
+   "values": [
+    1000.0,
+    1015.6595,
+    1025.459,
+    1028.8535,
+    1033.114,
+    1030.1338
+   ]
+  },
+  "Alla aktier (lika vikt)": {
+   "dates": [
+    "2026-10-23",
+    "2026-10-26",
+    "2026-10-27",
+    "2026-10-28",
+    "2026-10-29",
+    "2026-10-30"
+   ],
+   "values": [
+    1000.0,
+    1004.5936,
+    1010.2659,
+    1014.0401,
+    1013.4124,
+    1008.947
+   ]
+  }
+ }
+}
