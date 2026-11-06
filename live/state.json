@@ -1,0 +1,466 @@
+{
+ "generated_utc": "2026-11-06T22:21:20+00:00",
+ "data_date": "2026-11-06",
+ "expected_date": "2026-11-06",
+ "forward_start": "2026-10-23",
+ "capital": 1000.0,
+ "mode": "papper",
+ "app_url": "https://chrniv.github.io/signalagenten/",
+ "strategies": {
+  "S2": {
+   "name": "Dippköp",
+   "how": "Köper storbolag i upptrend (över 200-dagars snitt) efter en kraftig dipp (RSI(2) under 10). Säljer när kursen studsar över 5-dagars snitt eller efter 5 dagar. Stop-loss −8 %. Max 2 aktier.",
+   "backtest": "Underkänd i backtest 2006–2018: Sharpe 0,63 med Start-courtage (kravet var 0,7) och förlust med Mini.",
+   "hold": "Upp till 5 handelsdagar",
+   "hold_detail": "Säljs tidigare om kursen studsar, alltså stänger över sitt 5-dagars snitt, eller om stop-lossen löser ut.",
+   "equity": {
+    "dates": [
+     "2026-10-23",
+     "2026-10-26",
+     "2026-10-27",
+     "2026-10-28",
+     "2026-10-29",
+     "2026-10-30",
+     "2026-11-02",
+     "2026-11-03",
+     "2026-11-04",
+     "2026-11-05",
+     "2026-11-06"
+    ],
+    "values": [
+     1000.0,
+     1009.6883,
+     1024.2361,
+     1018.6622,
+     1016.4126,
+     1034.5437,
+     1040.0398,
+     1026.0443,
+     1060.2679,
+     1064.488,
+     1056.748
+    ]
+   },
+   "value": 1056.748,
+   "cash": 0.0,
+   "ret": 0.0567,
+   "max_dd": -0.0135,
+   "n_trades": 6,
+   "win_rate": 0.8333,
+   "positions": [
+    {
+     "sell_by": "2026-11-13",
+     "sell_by_kind": "senast",
+     "ticker": "ERIC-B.ST",
+     "name": "Ericsson B",
+     "entry_date": "2026-11-06",
+     "days_held": 1,
+     "value": 529.1305,
+     "ret": -0.0058,
+     "stop_dist": 0.0806
+    },
+    {
+     "sell_by": "2026-11-13",
+     "sell_by_kind": "senast",
+     "ticker": "SAAB-B.ST",
+     "name": "SAAB B",
+     "entry_date": "2026-11-06",
+     "days_held": 1,
+     "value": 527.6176,
+     "ret": -0.0087,
+     "stop_dist": 0.0775
+    }
+   ],
+   "trades": [
+    {
+     "ticker": "SINCH.ST",
+     "name": "Sinch",
+     "entry": "2026-11-02",
+     "exit": "2026-11-05",
+     "why": "regel",
+     "ret": 0.0303,
+     "pnl": 15.4519
+    },
+    {
+     "ticker": "SCA-B.ST",
+     "name": "SCA B",
+     "entry": "2026-11-02",
+     "exit": "2026-11-05",
+     "why": "regel",
+     "ret": 0.0407,
+     "pnl": 21.0504
+    },
+    {
+     "ticker": "SECU-B.ST",
+     "name": "Securitas B",
+     "entry": "2026-10-28",
+     "exit": "2026-11-02",
+     "why": "regel",
+     "ret": -0.0074,
+     "pnl": -3.7922
+    },
+    {
+     "ticker": "ESSITY-B.ST",
+     "name": "Essity B",
+     "entry": "2026-10-28",
+     "exit": "2026-11-02",
+     "why": "regel",
+     "ret": 0.0162,
+     "pnl": 8.2864
+    },
+    {
+     "ticker": "SWED-A.ST",
+     "name": "Swedbank A",
+     "entry": "2026-10-26",
+     "exit": "2026-10-28",
+     "why": "regel",
+     "ret": 0.0168,
+     "pnl": 8.4128
+    },
+    {
+     "ticker": "SEB-A.ST",
+     "name": "SEB A",
+     "entry": "2026-10-26",
+     "exit": "2026-10-28",
+     "why": "regel",
+     "ret": 0.0302,
+     "pnl": 15.0787
+    }
+   ],
+   "actions": []
+  },
+  "S3": {
+   "name": "Momentum",
+   "how": "Vid varje månadsskifte: håll de 2 storbolag som gått bäst senaste 12 månaderna (exkl. sista månaden), men bara när marknaden ligger över sitt 200-dagars snitt.",
+   "backtest": "Underkänd i backtest 2006–2018: Sharpe 0,52, sämre än att bara äga alla aktierna (0,60).",
+   "hold": "Minst till månadsskiftet",
+   "hold_detail": "Omprövas sista handelsdagen varje månad. Behålls så länge aktien är bland de 2 starkaste och marknaden ligger i upptrend.",
+   "equity": {
+    "dates": [
+     "2026-10-23",
+     "2026-10-26",
+     "2026-10-27",
+     "2026-10-28",
+     "2026-10-29",
+     "2026-10-30",
+     "2026-11-02",
+     "2026-11-03",
+     "2026-11-04",
+     "2026-11-05",
+     "2026-11-06"
+    ],
+    "values": [
+     1000.0,
+     1000.0,
+     1000.0,
+     1000.0,
+     1000.0,
+     1000.0,
+     1021.194,
+     1019.3641,
+     1024.8885,
+     1017.0559,
+     1003.7893
+    ]
+   },
+   "value": 1003.7893,
+   "cash": 0.0,
+   "ret": 0.0038,
+   "max_dd": -0.0206,
+   "n_trades": 0,
+   "win_rate": null,
+   "positions": [
+    {
+     "sell_by": "2026-12-01",
+     "sell_by_kind": "omprövas",
+     "ticker": "SSAB-A.ST",
+     "name": "SSAB A",
+     "entry_date": "2026-11-02",
+     "days_held": 5,
+     "value": 483.7178,
+     "ret": -0.0326,
+     "stop_dist": null
+    },
+    {
+     "sell_by": "2026-12-01",
+     "sell_by_kind": "omprövas",
+     "ticker": "SWED-A.ST",
+     "name": "Swedbank A",
+     "entry_date": "2026-11-02",
+     "days_held": 5,
+     "value": 520.0715,
+     "ret": 0.0401,
+     "stop_dist": null
+    }
+   ],
+   "trades": [],
+   "actions": []
+  },
+  "S6": {
+   "name": "Rapportdrift",
+   "how": "Köper dagen efter en kvartalsrapport som slagit analytikernas vinstförväntan med minst 10 % och där aktien slagit marknaden med minst 2 % på rapportdagen. Håller 30 handelsdagar, stop-loss −10 %. Max 2 aktier.",
+   "backtest": "Underkänd i backtest 2020–2023: Sharpe 0,25. Efter starka rapporter har svenska aktier i snitt inte fortsatt uppåt.",
+   "hold": "30 handelsdagar, cirka 6 veckor",
+   "hold_detail": "Säljs tidigare bara om stop-lossen löser ut.",
+   "equity": {
+    "dates": [
+     "2026-10-23",
+     "2026-10-26",
+     "2026-10-27",
+     "2026-10-28",
+     "2026-10-29",
+     "2026-10-30",
+     "2026-11-02",
+     "2026-11-03",
+     "2026-11-04",
+     "2026-11-05",
+     "2026-11-06"
+    ],
+    "values": [
+     1000.0,
+     970.9513,
+     978.8747,
+     974.4666,
+     967.2631,
+     969.9498,
+     1000.308,
+     976.1156,
+     985.4708,
+     985.145,
+     966.33
+    ]
+   },
+   "value": 966.33,
+   "cash": 0.0,
+   "ret": -0.0337,
+   "max_dd": -0.034,
+   "n_trades": 0,
+   "win_rate": null,
+   "positions": [
+    {
+     "sell_by": "2026-12-07",
+     "sell_by_kind": "senast",
+     "ticker": "KNOW.ST",
+     "name": "Knowit",
+     "entry_date": "2026-10-26",
+     "days_held": 10,
+     "value": 481.5176,
+     "ret": -0.037,
+     "stop_dist": 0.07
+    },
+    {
+     "sell_by": "2026-12-07",
+     "sell_by_kind": "senast",
+     "ticker": "BHG.ST",
+     "name": "BHG Group",
+     "entry_date": "2026-10-26",
+     "days_held": 10,
+     "value": 484.8124,
+     "ret": -0.0304,
+     "stop_dist": 0.0774
+    }
+   ],
+   "trades": [],
+   "actions": []
+  },
+  "S7": {
+   "name": "Volymlyft",
+   "how": "Köper dagen efter att en aktie slagit marknaden med minst 4 % på minst 3 gånger normal volym. Håller 30 handelsdagar, stop-loss −10 %. Max 2 aktier.",
+   "backtest": "Underkänd i backtest 2006–2018: Sharpe 0,04, sämre än slumpen.",
+   "hold": "30 handelsdagar, cirka 6 veckor",
+   "hold_detail": "Säljs tidigare bara om stop-lossen löser ut.",
+   "equity": {
+    "dates": [
+     "2026-10-23",
+     "2026-10-26",
+     "2026-10-27",
+     "2026-10-28",
+     "2026-10-29",
+     "2026-10-30",
+     "2026-11-02",
+     "2026-11-03",
+     "2026-11-04",
+     "2026-11-05",
+     "2026-11-06"
+    ],
+    "values": [
+     1000.0,
+     918.945,
+     921.6834,
+     922.1495,
+     909.2819,
+     891.7594,
+     847.8027,
+     842.2247,
+     860.0615,
+     858.135,
+     865.6067
+    ]
+   },
+   "value": 865.6067,
+   "cash": 0.0,
+   "ret": -0.1344,
+   "max_dd": -0.1578,
+   "n_trades": 3,
+   "win_rate": 0.0,
+   "positions": [
+    {
+     "sell_by": "2026-12-09",
+     "sell_by_kind": "senast",
+     "ticker": "PREV-B.ST",
+     "name": "Prevas B",
+     "entry_date": "2026-10-28",
+     "days_held": 8,
+     "value": 449.2871,
+     "ret": 0.0004,
+     "stop_dist": 0.1116
+    },
+    {
+     "sell_by": "2026-12-15",
+     "sell_by_kind": "senast",
+     "ticker": "HEBA-B.ST",
+     "name": "HEBA B",
+     "entry_date": "2026-11-03",
+     "days_held": 4,
+     "value": 416.3196,
+     "ret": 0.031,
+     "stop_dist": 0.1456
+    }
+   ],
+   "trades": [
+    {
+     "ticker": "YUBICO.ST",
+     "name": "Yubico",
+     "entry": "2026-10-27",
+     "exit": "2026-11-02",
+     "why": "stop-loss",
+     "ret": -0.1009,
+     "pnl": -45.3142
+    },
+    {
+     "ticker": "MCAP.ST",
+     "name": "MedCap",
+     "entry": "2026-10-26",
+     "exit": "2026-10-27",
+     "why": "stop-loss",
+     "ret": -0.1018,
+     "pnl": -50.9
+    },
+    {
+     "ticker": "ROKO-B.ST",
+     "name": "Röko B",
+     "entry": "2026-10-26",
+     "exit": "2026-10-26",
+     "why": "stop-loss",
+     "ret": -0.1018,
+     "pnl": -50.9
+    }
+   ],
+   "actions": []
+  },
+  "SLUMP": {
+   "name": "Slumpen",
+   "how": "Kontrollgrupp: köper slumpvisa aktier, håller 30 dagar, stop-loss −10 %. En strategi som inte slår Slumpen över tid har ingen fördel.",
+   "backtest": "Kontroll — ska inte ha någon fördel.",
+   "hold": "30 handelsdagar, cirka 6 veckor",
+   "hold_detail": "Säljs tidigare bara om stop-lossen löser ut.",
+   "equity": {
+    "dates": [
+     "2026-10-23",
+     "2026-10-26",
+     "2026-10-27",
+     "2026-10-28",
+     "2026-10-29",
+     "2026-10-30",
+     "2026-11-02",
+     "2026-11-03",
+     "2026-11-04",
+     "2026-11-05",
+     "2026-11-06"
+    ],
+    "values": [
+     1000.0,
+     1000.0,
+     1000.0,
+     1000.0,
+     1000.0,
+     1000.0,
+     1000.0,
+     1000.0,
+     1000.0,
+     1000.0,
+     1000.0
+    ]
+   },
+   "value": 1000.0,
+   "cash": 1000.0,
+   "ret": 0.0,
+   "max_dd": 0.0,
+   "n_trades": 0,
+   "win_rate": null,
+   "positions": [],
+   "trades": [],
+   "actions": []
+  }
+ },
+ "actions": [],
+ "stale": false,
+ "benchmarks": {
+  "OMXS30": {
+   "dates": [
+    "2026-10-23",
+    "2026-10-26",
+    "2026-10-27",
+    "2026-10-28",
+    "2026-10-29",
+    "2026-10-30",
+    "2026-11-02",
+    "2026-11-03",
+    "2026-11-04",
+    "2026-11-05",
+    "2026-11-06"
+   ],
+   "values": [
+    1000.0,
+    1015.6595,
+    1025.459,
+    1028.8535,
+    1033.114,
+    1030.1351,
+    1035.0537,
+    1034.2413,
+    1042.8157,
+    1039.4843,
+    1029.028
+   ]
+  },
+  "Alla aktier (lika vikt)": {
+   "dates": [
+    "2026-10-23",
+    "2026-10-26",
+    "2026-10-27",
+    "2026-10-28",
+    "2026-10-29",
+    "2026-10-30",
+    "2026-11-02",
+    "2026-11-03",
+    "2026-11-04",
+    "2026-11-05",
+    "2026-11-06"
+   ],
+   "values": [
+    1000.0,
+    1004.5936,
+    1010.2659,
+    1014.0401,
+    1013.4124,
+    1008.947,
+    1008.026,
+    1003.823,
+    1016.0032,
+    1015.6125,
+    1011.2457
+   ]
+  }
+ }
+}
