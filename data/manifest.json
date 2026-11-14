@@ -1,0 +1,334 @@
+{
+  "run_utc": "2026-11-14T12:10:40.610796+00:00",
+  "yfinance": "1.8.0",
+  "start": "1995-01-01",
+  "files": {
+    "ABB.ST": {
+      "rows": 6467,
+      "first": "2001-05-08",
+      "last": "2026-11-13",
+      "warnings": [
+        "2 daily moves >35%: 2002-10-22, 2002-11-04"
+      ]
+    },
+    "ALFA.ST": {
+      "rows": 6199,
+      "first": "2002-05-17",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "ASSA-B.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "ATCO-A.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "ATCO-B.ST": {
+      "rows": 6841,
+      "first": "1999-12-01",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "AZN.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "BOL.ST": {
+      "rows": 6316,
+      "first": "2001-12-05",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "ELUX-B.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": [
+        "1 daily moves >35%: 2026-05-19"
+      ]
+    },
+    "ERIC-B.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "ESSITY-B.ST": {
+      "rows": 2368,
+      "first": "2017-06-15",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "EVO.ST": {
+      "rows": 2931,
+      "first": "2015-03-20",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "GETI-B.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "HEXA-B.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "HM-B.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "INVE-B.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "KINV-B.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "NDA-SE.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "NIBE-B.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "SAAB-B.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "SAND.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "SBB-B.ST": {
+      "rows": 4178,
+      "first": "2010-04-01",
+      "last": "2026-11-13",
+      "warnings": [
+        "4 daily moves >35%: 2011-01-05, 2014-11-12, 2023-06-02, 2025-05-13"
+      ]
+    },
+    "SCA-B.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "SEB-A.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "SHB-A.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "SINCH.ST": {
+      "rows": 2792,
+      "first": "2015-10-08",
+      "last": "2026-11-13",
+      "warnings": [
+        "1 daily moves >35%: 2022-11-02"
+      ]
+    },
+    "SKA-B.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "SKF-B.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "SSAB-A.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "SWED-A.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "TEL2-B.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "TELIA.ST": {
+      "rows": 6702,
+      "first": "2000-06-13",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "VOLV-B.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "EPI-A.ST": {
+      "rows": 2113,
+      "first": "2018-06-18",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "LIFCO-B.ST": {
+      "rows": 3010,
+      "first": "2014-11-21",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "ADDT-B.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": [
+        "1 daily moves >35%: 2001-08-28"
+      ]
+    },
+    "INDU-C.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "LUND-B.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "AXFO.ST": {
+      "rows": 6783,
+      "first": "2000-02-21",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "TREL-B.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "SECU-B.ST": {
+      "rows": 6818,
+      "first": "2000-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "^OMXS30GI": {
+      "rows": 1,
+      "first": "2026-11-13",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "^OMXSGI": {
+      "rows": 1,
+      "first": "2026-11-13",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "^OMX": {
+      "rows": 4511,
+      "first": "2008-11-20",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "^SP500TR": {
+      "rows": 8021,
+      "first": "1995-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "^GSPC": {
+      "rows": 8021,
+      "first": "1995-01-03",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "SEK=X": {
+      "rows": 6416,
+      "first": "2001-07-16",
+      "last": "2026-11-14",
+      "warnings": []
+    },
+    "EURSEK=X": {
+      "rows": 7267,
+      "first": "1998-11-18",
+      "last": "2026-11-14",
+      "warnings": []
+    },
+    "^OMXSPI": {
+      "rows": 3428,
+      "first": "2013-03-05",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "IWDA.AS": {
+      "rows": 4386,
+      "first": "2009-09-25",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "URTH": {
+      "rows": 3732,
+      "first": "2012-01-12",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "ACWI": {
+      "rows": 4689,
+      "first": "2008-03-28",
+      "last": "2026-11-13",
+      "warnings": []
+    },
+    "XACT-OMXS30.ST": {
+      "rows": 2767,
+      "first": "2007-01-29",
+      "last": "2026-11-13",
+      "warnings": [
+        "rows with missing OHLC"
+      ]
+    }
+  },
+  "failed": {
+    "XACTOMXS30.ST": "no data"
+  }
+}
